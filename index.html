@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNHS Rocketry Club | Taking Flight</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home">
+  <div class="space-scene" aria-hidden="true">
+    <div class="noise-layer"></div>
+    <div class="nebula nebula-a"></div>
+    <div class="nebula nebula-b"></div>
+    <div class="starfield" id="starfield"></div>
+    <div class="cursor-field" id="cursorField"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="index.html" aria-label="DNHS Rocketry Club home">
+        <div class="logo"><img src="images/logo.png" alt="DNHS Rocketry Club Logo"></div>
+        DNHS Rocketry Club
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
+        <a class="active" href="index.html">Home</a>
+        <a href="projects.html">Projects</a>
+        <a href="crew.html">Crew</a>
+        <a href="newsroom.html">Newsroom</a>
+        <a href="#contact">Contact</a>
+        <a class="apply-link" href="#contact">Apply</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="home-hero cinematic-section reveal">
+      <div class="hero-media" aria-hidden="true">
+        <img src="images/rocket-1.jpg" alt="">
+      </div>
+      <div class="section-copy">
+        <p class="eyebrow">DNHS Rocketry Club</p>
+        <h1>Taking flight.</h1>
+        <p class="lede">We design, build, test, and learn from student rockets with the seriousness of an engineering program and the energy of a launch team.</p>
+        <div class="hero-actions">
+          <a class="primary-button" href="projects.html">View Projects</a>
+          <a class="ghost-button" href="newsroom.html">Team Updates</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="cinematic-section mission-section reveal">
+      <div class="section-copy narrow">
+        <p class="eyebrow">Mission Architecture</p>
+        <h2>Precision before altitude.</h2>
+        <p>Every build is organized around subsystem ownership: propulsion, structures, avionics, recovery, payload, and operations. The goal is not just to fly. The goal is to understand why it flew.</p>
+      </div>
+      <div class="mission-grid" aria-label="Rocketry subsystems">
+        <article><span>01</span><strong>Structures</strong><p>Airframe geometry, fin alignment, strength, and fit.</p></article>
+        <article><span>02</span><strong>Avionics</strong><p>Flight computers, logging, sensors, and validation.</p></article>
+        <article><span>03</span><strong>Recovery</strong><p>Deployment timing, tracking, and safe return.</p></article>
+        <article><span>04</span><strong>Payload</strong><p>Experiment integration, isolation, and access.</p></article>
+      </div>
+    </section>
+
+    <section class="launch-scroll reveal" aria-label="Launch film">
+      <div class="launch-sticky">
+        <video id="launchVideo" class="launch-video" muted playsinline preload="metadata" poster="images/rocket-2.jpg">
+          <source src="videos/launch.mp4" type="video/mp4">
+        </video>
+        <div class="launch-poster" aria-hidden="true"></div>
+        <div class="section-copy">
+          <p class="eyebrow">Launch Film</p>
+          <h2>Where designs turn into distance.</h2>
+          <p>Drop your launch clip at <span>videos/launch.mp4</span>. This scene smoothly scrubs through the footage as the page moves.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cinematic-section systems-section reveal">
+      <div class="section-copy">
+        <p class="eyebrow">Engineering Systems</p>
+        <h2>Built like documentation. Presented like a mission.</h2>
+        <p>Projects and crew pages keep the technical information structured and readable. The homepage carries the atmosphere; the supporting pages carry the engineering record.</p>
+      </div>
+      <div class="split-links">
+        <a href="projects.html"><span>Open</span> Technical Projects</a>
+        <a href="crew.html"><span>Open</span> Engineering Crew</a>
+      </div>
+    </section>
+
+    <section class="cinematic-section cad-section reveal">
+      <div class="section-copy narrow">
+        <p class="eyebrow">CAD Bay</p>
+        <h2>Inspect the vehicle before it flies.</h2>
+        <p>Load an STL or OBJ file to preview a rotating wireframe model directly on the homepage. This is intentionally lightweight and offline-friendly.</p>
+        <label class="cad-upload">
+          <input id="cadInput" type="file" accept=".stl,.obj">
+          Load CAD File
+        </label>
+      </div>
+      <div class="cad-viewer">
+        <canvas id="cadCanvas" width="900" height="640" aria-label="3D CAD preview"></canvas>
+        <div class="cad-status" id="cadStatus">Placeholder model active. Load STL or OBJ.</div>
+      </div>
+    </section>
+
+    <section class="cinematic-section newsroom-preview reveal">
+      <div class="section-copy">
+        <p class="eyebrow">Newsroom</p>
+        <h2>Field notes from the team.</h2>
+        <p>Use the newsroom for launch recaps, test updates, sponsor announcements, build milestones, and competition progress.</p>
+        <a class="text-link" href="newsroom.html">Read updates</a>
+      </div>
+      <div class="news-strip">
+        <article><span>Build Log</span><strong>Airframe fit check completed</strong></article>
+        <article><span>Test Stand</span><strong>Recovery timing review scheduled</strong></article>
+        <article><span>Outreach</span><strong>Sponsor packet draft in progress</strong></article>
+      </div>
+    </section>
+
+    <section class="cinematic-section sponsors-section reveal">
+      <div class="section-copy">
+        <p class="eyebrow">Sponsors</p>
+        <h2>Partners who help the team build.</h2>
+        <p>Use this area for local companies, parent donors, university partners, and technical sponsors supporting materials, tools, launch fees, and testing.</p>
+      </div>
+      <div class="sponsor-wall">
+        <article><img src="images/sponsor-1.png" alt="Sponsor placeholder"></article>
+        <article><img src="images/sponsor-2.png" alt="Sponsor placeholder"></article>
+        <article><img src="images/sponsor-1.png" alt="Sponsor placeholder"></article>
+        <article><img src="images/sponsor-2.png" alt="Sponsor placeholder"></article>
+      </div>
+    </section>
+
+    <section class="cinematic-section contact-section reveal" id="contact">
+      <div class="section-copy">
+        <p class="eyebrow">Apply</p>
+        <h2>Join the next build cycle.</h2>
+        <p>Bring curiosity, careful hands, and a willingness to test ideas until the data makes sense.</p>
+        <a class="primary-button" href="mailto:rocketry@example.com">Contact the Team</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

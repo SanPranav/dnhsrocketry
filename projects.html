@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNHS Rocketry Club | Projects</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="projects">
+  <div class="space-scene" aria-hidden="true">
+    <div class="noise-layer"></div>
+    <div class="nebula nebula-a"></div>
+    <div class="nebula nebula-b"></div>
+    <div class="starfield" id="starfield"></div>
+    <div class="cursor-field" id="cursorField"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="index.html" aria-label="DNHS Rocketry Club home">
+        <div class="logo"><img src="images/logo.png" alt="DNHS Rocketry Club Logo"></div>
+        DNHS Rocketry Club
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a class="active" href="projects.html">Projects</a>
+        <a href="crew.html">Crew</a>
+        <a href="newsroom.html">Newsroom</a>
+        <a href="index.html#contact">Contact</a>
+        <a class="apply-link" href="index.html#contact">Apply</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main technical-page">
+    <section class="page-hero section">
+      <p class="eyebrow">Engineering Registry</p>
+      <h1>Rocket projects.</h1>
+      <p class="page-lede">Structured technical entries for active and historical DNHS flight vehicles.</p>
+    </section>
+
+    <section class="section technical-list" aria-label="Rocket technical entries">
+      <article class="technical-entry" tabindex="0" role="button" data-project="phoenix">
+        <img src="images/rocket-1.jpg" alt="SR-1 Phoenix rocket placeholder">
+        <div class="entry-grid">
+          <h2>SR-1 Phoenix</h2>
+          <dl>
+            <div><dt>Mission Type</dt><dd>Recovery validation</dd></div>
+            <div><dt>Payload</dt><dd>Dual altimeter bay</dd></div>
+            <div><dt>Altitude Capability</dt><dd>3.2 km</dd></div>
+            <div><dt>Propulsion System</dt><dd>Solid composite motor</dd></div>
+            <div><dt>Status</dt><dd>Ground review</dd></div>
+          </dl>
+        </div>
+      </article>
+
+      <article class="technical-entry" tabindex="0" role="button" data-project="alpha">
+        <img src="images/rocket-2.jpg" alt="DNHS-Alpha rocket placeholder">
+        <div class="entry-grid">
+          <h2>DNHS-Alpha</h2>
+          <dl>
+            <div><dt>Mission Type</dt><dd>Avionics qualification</dd></div>
+            <div><dt>Payload</dt><dd>Sensor logging module</dd></div>
+            <div><dt>Altitude Capability</dt><dd>5.8 km</dd></div>
+            <div><dt>Propulsion System</dt><dd>Hybrid test grain</dd></div>
+            <div><dt>Status</dt><dd>Simulation pass</dd></div>
+          </dl>
+        </div>
+      </article>
+
+      <article class="technical-entry" tabindex="0" role="button" data-project="aurora">
+        <img src="images/rocket-3.jpg" alt="Aurora Payload rocket placeholder">
+        <div class="entry-grid">
+          <h2>Aurora Payload</h2>
+          <dl>
+            <div><dt>Mission Type</dt><dd>Science payload ascent</dd></div>
+            <div><dt>Payload</dt><dd>Thermal experiment bay</dd></div>
+            <div><dt>Altitude Capability</dt><dd>2.4 km</dd></div>
+            <div><dt>Propulsion System</dt><dd>Solid motor</dd></div>
+            <div><dt>Status</dt><dd>Payload fit check</dd></div>
+          </dl>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="project-modal" id="projectModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <article class="modal-panel">
+      <button class="modal-close" type="button" data-close-modal aria-label="Close project details">Close</button>
+      <div class="modal-media">
+        <img id="modalImage" src="images/rocket-1.jpg" alt="">
+      </div>
+      <div class="modal-copy">
+        <p class="eyebrow" id="modalKicker">Project Detail</p>
+        <h2 id="modalTitle">SR-1 Phoenix</h2>
+        <p id="modalDescription"></p>
+        <div class="modal-specs" id="modalSpecs"></div>
+        <div class="asset-row">
+          <a id="modalCad" href="#" download>OpenRocket CAD</a>
+          <a id="modalVideo" href="#" target="_blank" rel="noreferrer">Test Flight Video</a>
+        </div>
+        <div class="video-placeholder">
+          <span>Test flight video placeholder</span>
+          <p>Add YouTube, Drive, or local launch footage links here.</p>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
