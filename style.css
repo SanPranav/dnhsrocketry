@@ -78,7 +78,6 @@ img {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at var(--cursor-x, 50%) var(--cursor-y, 50%), rgba(143, 199, 255, 0.13), transparent 18rem),
     linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.72));
 }
 
@@ -107,7 +106,8 @@ img {
   border-radius: 50%;
   opacity: var(--o);
   background: #fff;
-  box-shadow: 0 0 calc(var(--s) * 8) rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 calc(var(--s) * 8) rgba(255, 255, 255, 0.55);
+  transition: opacity 90ms linear, box-shadow 90ms linear, transform 90ms linear;
 }
 
 .nebula {
@@ -135,17 +135,7 @@ img {
 }
 
 .cursor-field {
-  position: absolute;
-  left: var(--cursor-x, 50%);
-  top: var(--cursor-y, 50%);
-  width: 340px;
-  height: 340px;
-  border-radius: 50%;
-  opacity: 0.82;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(143, 199, 255, 0.17), rgba(255, 138, 36, 0.06) 34%, transparent 68%);
-  filter: blur(20px);
-  transition: opacity 220ms ease;
+  display: none;
 }
 
 .site-header {
@@ -312,8 +302,8 @@ main {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.25), transparent 36%),
-    url("https://images-assets.nasa.gov/image/GSFC_20171208_Archive_e001861/GSFC_20171208_Archive_e001861~orig.jpg") center / cover no-repeat;
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.2), transparent 36%),
+    url("https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Apollo_11_Launch_-_GPN-2000-000630.jpg/1280px-Apollo_11_Launch_-_GPN-2000-000630.jpg") center / cover no-repeat;
   mix-blend-mode: screen;
   opacity: 0.52;
 }
@@ -418,8 +408,10 @@ p {
 }
 
 .ghost-button {
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .primary-button:hover,
@@ -1026,14 +1018,15 @@ dd {
 
 .crew-showcase {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-flow: dense;
   gap: 18px;
 }
 
 .crew-card {
   position: relative;
   overflow: hidden;
-  min-height: 390px;
+  min-height: 340px;
   display: flex;
   align-items: end;
   padding: 22px;
@@ -1089,12 +1082,350 @@ dd {
 }
 
 .newsroom-list article {
-  padding: clamp(24px, 4vw, 42px);
-  box-shadow: inset 0 0 0 1px var(--line);
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 40px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
 }
 
 .newsroom-list h2 {
-  font-size: clamp(30px, 4.8vw, 66px);
+  margin-bottom: 10px;
+  font-size: clamp(28px, 4.2vw, 56px);
+  line-height: 1;
+}
+
+.newsroom-list p {
+  max-width: 62ch;
+  margin-bottom: 18px;
+}
+
+.news-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(143, 199, 255, 0.12);
+  color: rgba(255, 255, 255, 0.86);
+  font: 700 11px/1 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.newsroom-list article::after {
+  content: "";
+  position: absolute;
+  inset: auto -30% -60% auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(143, 199, 255, 0.14), transparent 66%);
+  pointer-events: none;
+}
+
+.newsroom-gallery-shell {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: clamp(18px, 2.5vw, 28px);
+  align-items: start;
+}
+
+.newsroom-gallery-copy {
+  display: grid;
+  gap: 16px;
+}
+
+.newsroom-mini-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.newsroom-mini-grid article {
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.newsroom-mini-grid strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.newsroom-hero-card {
+  align-self: stretch;
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.26);
+}
+
+.newsroom-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.newsroom-hero-stats article {
+  display: grid;
+  gap: 8px;
+  min-height: 144px;
+  padding: 16px 14px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.newsroom-hero-stats strong {
+  display: block;
+  color: #fff;
+  font-size: clamp(28px, 4.6vw, 54px);
+  line-height: 1;
+}
+
+.newsroom-hero-stats span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.newsroom-gallery-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.28);
+}
+
+.newsroom-gallery-frame {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.newsroom-gallery-frame img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  filter: saturate(0.9) contrast(1.06);
+}
+
+.newsroom-gallery-frame figcaption {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px 18px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.82));
+}
+
+.newsroom-gallery-frame p {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.newsroom-gallery-frame span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.gallery-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.gallery-nav {
+  flex: 1;
+  justify-content: center;
+  min-height: 54px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.gallery-nav:hover {
+  box-shadow: 0 18px 40px rgba(143, 199, 255, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+}
+
+.gallery-thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gallery-thumb {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.gallery-thumb:hover,
+.gallery-thumb:focus-visible,
+.gallery-thumb.active {
+  transform: translateY(-2px);
+  border-color: rgba(143, 199, 255, 0.36);
+  background: rgba(143, 199, 255, 0.08);
+}
+
+.gallery-thumb img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.gallery-thumb span {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gallery-thumb:not(.active) {
+  opacity: 0.74;
+}
+
+.newsroom-gallery-feed-wrap {
+  margin-top: 28px;
+  display: grid;
+  gap: 18px;
+}
+
+.newsroom-gallery-feed-copy h3 {
+  margin: 0;
+  font-size: clamp(24px, 3.6vw, 44px);
+  text-transform: uppercase;
+}
+
+.newsroom-gallery-feed-copy p:last-child {
+  max-width: 56ch;
+}
+
+.gallery-feed {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px;
+  grid-auto-flow: dense;
+}
+
+.gallery-feed-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 260px;
+  grid-column: span 4;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+}
+
+.gallery-feed-card figure {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.gallery-feed-card.is-wide {
+  grid-column: span 8;
+}
+
+.gallery-feed-card.is-tall {
+  min-height: 360px;
+  grid-row: span 2;
+}
+
+.gallery-feed-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92) contrast(1.06);
+  transform: scale(1.01);
+}
+
+.gallery-feed-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 20%, rgba(0, 0, 0, 0.84));
+}
+
+.gallery-feed-card figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+}
+
+.gallery-feed-card strong {
+  color: #fff;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gallery-feed-card span {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.gallery-sentinel {
+  height: 1px;
+}
+
+.newsroom-gallery-panel,
+.gallery-feed-card,
+.newsroom-hero-card,
+.newsroom-list article,
+.crew-card,
+.contact-sidecard,
+.contact-form,
+.model-render-shell,
+.project-cad-shell {
+  backdrop-filter: blur(16px);
+}
+
+.newsroom-gallery-shell .section-copy h2,
+.newsroom-gallery-copy h2 {
+  text-transform: uppercase;
+}
+
+.newsroom-gallery-shell .section-copy p:last-child {
+  max-width: 52ch;
 }
 
 .project-modal {
@@ -1420,6 +1751,15 @@ dd {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .gallery-feed {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+
+  .gallery-feed-card,
+  .gallery-feed-card.is-wide {
+    grid-column: span 4;
+  }
+
   .hero-split {
     grid-template-columns: 1fr;
   }
@@ -1492,8 +1832,17 @@ dd {
   .sponsor-wall,
   .footer-sponsors,
   .modal-panel,
-  .modal-specs {
+  .modal-specs,
+  .gallery-feed {
     grid-template-columns: 1fr;
+  }
+
+  .gallery-feed-card,
+  .gallery-feed-card.is-wide,
+  .gallery-feed-card.is-tall {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 240px;
   }
 
   .crew-card {

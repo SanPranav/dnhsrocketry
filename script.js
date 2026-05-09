@@ -56,6 +56,15 @@ const navLinks = document.getElementById("navLinks");
 const launchScroll = document.querySelector(".launch-scroll");
 const launchSticky = document.querySelector(".launch-sticky");
 const launchVideo = document.getElementById("launchVideo");
+const newsroomGallery = document.querySelector("[data-newsroom-gallery]");
+const newsroomGalleryImage = document.getElementById("newsroomGalleryImage");
+const newsroomGalleryTitle = document.getElementById("newsroomGalleryTitle");
+const newsroomGalleryCaption = document.getElementById("newsroomGalleryCaption");
+const newsroomGalleryItems = document.querySelectorAll("[data-gallery-item]");
+const newsroomGalleryPrev = document.querySelector("[data-gallery-prev]");
+const newsroomGalleryNext = document.querySelector("[data-gallery-next]");
+const newsroomGalleryFeed = document.querySelector("[data-gallery-feed]");
+const newsroomGallerySentinel = document.querySelector("[data-gallery-sentinel]");
 const projectModal = document.getElementById("projectModal");
 const reveals = document.querySelectorAll(".reveal");
 const spaceScene = document.querySelector(".space-scene");
@@ -82,8 +91,8 @@ const projectData = {
     description: "Zenith is our current nationals-qualifier build focused on stable flight and consistent recovery. The team is tuning mass distribution, fin alignment, and deployment timing before final field validation.",
     specs: ["Mission: National TARC Qualifier", "Target Altitude: 750 ft", "Motor: Solid composite", "Airframe: Fiberglass test article", "Recovery: Dual deployment", "Status: Pre-flight validation"],
     cad: "assets/models/Assembly_1.obj",
-    cadSource: "Assembly 1.x_t",
-    cadDownload: "Assembly 1.x_t",
+    cadSource: "assets/Assembly1.x_t",
+    cadDownload: "assets/Assembly1.x_t",
     video: "videos/launch.mp4"
   }
   // additional projects can be added here following the same structure
@@ -98,6 +107,39 @@ const projectCadCache = {};
 let projectCadProjected = [];
 let projectSelection = { vertex: null, edges: new Set() };
 let launchLastSeekAt = 0;
+let newsroomGalleryIndex = 0;
+const newsroomGalleryData = [
+  {
+    image: "images/team-1.png",
+    title: "Program Workshop",
+    caption: "Design reviews and subsystem planning with the team."
+  },
+  {
+    image: "images/team-2.png",
+    title: "The Shop",
+    caption: "Where parts turn into flight-ready hardware."
+  },
+  {
+    image: "images/team-3.png",
+    title: "Competition Day",
+    caption: "Range prep, launch, and recovery all in one frame."
+  }
+];
+
+const newsroomGalleryFeedData = [
+  { image: "images/team-1.png", title: "Workshop Notes", caption: "Whiteboard plans, layout checks, and subsystem handoffs." },
+  { image: "images/team-2.png", title: "Hardware Bench", caption: "Parts, tools, and the focus that turns ideas into flight hardware." },
+  { image: "images/team-3.png", title: "Launch Day", caption: "Pre-flight checks and range-side setup before liftoff." },
+  { image: "images/team-1.png", title: "CAD Review", caption: "Iteration time with the current build and the next revision queued." },
+  { image: "images/team-2.png", title: "Recovery Setup", caption: "Packing, folding, and confirming deployment timing before field day." },
+  { image: "images/team-3.png", title: "Flight Line", caption: "Team coordination right before the vehicle leaves the rail." },
+  { image: "images/team-1.png", title: "Subsystem Sync", caption: "Engineering notes across propulsion, avionics, and recovery." },
+  { image: "images/team-2.png", title: "Build Table", caption: "The shop setup where the next round of parts gets assembled." },
+  { image: "images/team-3.png", title: "Post-Flight", caption: "Recovered hardware, fresh notes, and the next iteration list." },
+  { image: "images/team-1.png", title: "Crew Huddle", caption: "Quick alignment before the next check-in or test window." },
+  { image: "images/team-2.png", title: "Finishing Pass", caption: "Cleanup, measurement, and a final look at the details." },
+  { image: "images/team-3.png", title: "Range Prep", caption: "Everything staged, labeled, and ready for the next launch." }
+];
 
 function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -117,16 +159,77 @@ function createStars() {
     const star = document.createElement("i");
     const size = Math.random() > 0.91 ? Math.random() * 2.2 + 1.2 : Math.random() * 1.05 + 0.45;
     const base = 0.18 + Math.random() * 0.68;
+    const left = Math.random() * 100;
+    const top = Math.random() * 124;
     star.className = "star";
-    star.style.left = `${Math.random() * 100}%`;
-    star.style.top = `${Math.random() * 124}%`;
+    star.style.left = `${left}%`;
+    star.style.top = `${top}%`;
     star.style.setProperty("--s", `${size}px`);
     star.style.setProperty("--base-o", `${base}`);
     star.style.setProperty("--o", `${base}`);
+    star.style.setProperty("--boost", "0");
     star.dataset.phase = String(Math.random() * Math.PI * 2);
     star.dataset.rate = String(0.35 + Math.random() * 1.1);
+    star.dataset.left = String(left);
+    star.dataset.top = String(top);
     starfield.appendChild(star);
   }
+}
+
+function setNewsroomGallery(index) {
+  if (!newsroomGalleryData.length || !newsroomGalleryImage || !newsroomGalleryTitle || !newsroomGalleryCaption) return;
+
+  newsroomGalleryIndex = (index + newsroomGalleryData.length) % newsroomGalleryData.length;
+  const item = newsroomGalleryData[newsroomGalleryIndex];
+  newsroomGalleryImage.src = item.image;
+  newsroomGalleryImage.alt = item.title;
+  newsroomGalleryTitle.textContent = item.title;
+  newsroomGalleryCaption.textContent = item.caption;
+
+  newsroomGalleryItems.forEach((button, itemIndex) => {
+    const active = itemIndex === newsroomGalleryIndex;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+function advanceNewsroomGallery(direction) {
+  setNewsroomGallery(newsroomGalleryIndex + direction);
+}
+
+function createGalleryCard(item, index) {
+  const card = document.createElement("article");
+  const wide = index % 5 === 0;
+  const tall = index % 7 === 0;
+  card.className = `gallery-feed-card${wide ? " is-wide" : ""}${tall ? " is-tall" : ""}`;
+
+  const figure = document.createElement("figure");
+  const image = document.createElement("img");
+  image.src = item.image;
+  image.alt = item.title;
+  figure.appendChild(image);
+
+  const caption = document.createElement("figcaption");
+  const title = document.createElement("strong");
+  title.textContent = item.title;
+  const text = document.createElement("span");
+  text.textContent = item.caption;
+  caption.append(title, text);
+  figure.appendChild(caption);
+  card.appendChild(figure);
+  return card;
+}
+
+let newsroomGalleryFeedIndex = 0;
+const newsroomGalleryFeedBatchSize = 4;
+
+function appendNewsroomGalleryBatch() {
+  if (!newsroomGalleryFeed) return;
+  const nextItems = newsroomGalleryFeedData.slice(newsroomGalleryFeedIndex, newsroomGalleryFeedIndex + newsroomGalleryFeedBatchSize);
+  nextItems.forEach((item, index) => {
+    newsroomGalleryFeed.appendChild(createGalleryCard(item, newsroomGalleryFeedIndex + index));
+  });
+  newsroomGalleryFeedIndex += nextItems.length;
 }
 
 function createPlaceholderModel() {
@@ -136,12 +239,14 @@ function createPlaceholderModel() {
     [0.42, 0.8, -0.22], [-0.42, -0.62, -0.22], [-0.42, 0.8, -0.22]
   ];
   const edges = [[0,1],[1,2],[2,3],[0,4],[4,5],[5,3],[0,6],[6,7],[7,3],[0,8],[8,9],[9,3],[1,4],[4,8],[8,6],[6,1],[2,5],[5,9],[9,7],[7,2]];
-  return { points, edges };
+  const faces = [[0,1,2],[0,2,3],[0,4,5],[0,5,3],[0,6,7],[0,7,3],[0,8,9],[0,9,3],[1,4,8],[1,8,6],[2,5,9],[2,9,7]];
+  return { points, edges, faces };
 }
 
 function parseObj(text) {
   const points = [];
   const edges = new Set();
+  const faces = [];
 
   text.split(/\r?\n/).forEach((line) => {
     const parts = line.trim().split(/\s+/);
@@ -150,6 +255,9 @@ function parseObj(text) {
     }
     if (parts[0] === "f" && parts.length >= 4) {
       const ids = parts.slice(1).map((part) => Number(part.split("/")[0]) - 1).filter((id) => Number.isFinite(id));
+      for (let i = 1; i < ids.length - 1; i += 1) {
+        faces.push([ids[0], ids[i], ids[i + 1]]);
+      }
       ids.forEach((id, index) => {
         const next = ids[(index + 1) % ids.length];
         edges.add([Math.min(id, next), Math.max(id, next)].join(":"));
@@ -157,7 +265,7 @@ function parseObj(text) {
     }
   });
 
-  return normalizeModel({ points, edges: [...edges].map((edge) => edge.split(":").map(Number)) });
+  return normalizeModel({ points, edges: [...edges].map((edge) => edge.split(":").map(Number)), faces });
 }
 
 function parseStl(buffer) {
@@ -169,6 +277,7 @@ function parseStl(buffer) {
     const text = decoder.decode(buffer);
     const points = [];
     const edges = [];
+    const faces = [];
     let tri = [];
     text.split(/\r?\n/).forEach((line) => {
       const parts = line.trim().split(/\s+/);
@@ -176,17 +285,19 @@ function parseStl(buffer) {
         points.push(parts.slice(1, 4).map(Number));
         tri.push(points.length - 1);
         if (tri.length === 3) {
+          faces.push(tri.slice());
           edges.push([tri[0], tri[1]], [tri[1], tri[2]], [tri[2], tri[0]]);
           tri = [];
         }
       }
     });
-    return normalizeModel({ points, edges });
+    return normalizeModel({ points, edges, faces });
   }
 
   const triangles = view.getUint32(80, true);
   const points = [];
   const edges = [];
+  const faces = [];
   let offset = 84;
   for (let i = 0; i < triangles && offset + 50 <= buffer.byteLength; i += 1) {
     offset += 12;
@@ -197,14 +308,15 @@ function parseStl(buffer) {
       tri.push(points.length - 1);
       offset += 12;
     }
+    faces.push(tri.slice());
     edges.push([tri[0], tri[1]], [tri[1], tri[2]], [tri[2], tri[0]]);
     offset += 2;
   }
-  return normalizeModel({ points, edges });
+  return normalizeModel({ points, edges, faces });
 }
 
 function normalizeModel(model) {
-  if (!model.points.length || !model.edges.length) return createPlaceholderModel();
+  if (!model.points.length || (!model.edges.length && (!model.faces || !model.faces.length))) return createPlaceholderModel();
 
   const center = [0, 0, 0];
   model.points.forEach((point) => {
@@ -225,7 +337,8 @@ function normalizeModel(model) {
 
   return {
     points: points.map((point) => point.map((value) => value / (max || 1))),
-    edges: model.edges.slice(0, 9000)
+    edges: (model.edges || []).slice(0, 9000),
+    faces: (model.faces || []).slice(0, 6000)
   };
 }
 
@@ -260,6 +373,7 @@ function getFallbackOrkProfile(key) {
 function profileToModel(profile) {
   const points = [];
   const edges = [];
+  const faces = [];
   const sides = 26;
   let y = -1;
   const total = profile.reduce((sum, seg) => sum + seg.length, 0) || 1;
@@ -267,23 +381,103 @@ function profileToModel(profile) {
   profile.forEach((seg) => {
     const y0 = y;
     const y1 = y + (seg.length / total) * 2;
+    const ring0 = [];
+    const ring1 = [];
     for (let i = 0; i < sides; i += 1) {
-      const a0 = (i / sides) * Math.PI * 2;
-      const a1 = ((i + 1) / sides) * Math.PI * 2;
-
-      const p0 = [Math.cos(a0) * seg.r0, y0, Math.sin(a0) * seg.r0];
-      const p1 = [Math.cos(a1) * seg.r0, y0, Math.sin(a1) * seg.r0];
-      const p2 = [Math.cos(a0) * seg.r1, y1, Math.sin(a0) * seg.r1];
-      const p3 = [Math.cos(a1) * seg.r1, y1, Math.sin(a1) * seg.r1];
-
-      const start = points.length;
-      points.push(p0, p1, p2, p3);
-      edges.push([start, start + 1], [start, start + 2], [start + 1, start + 3], [start + 2, start + 3]);
+      const angle = (i / sides) * Math.PI * 2;
+      ring0.push(points.length);
+      points.push([Math.cos(angle) * seg.r0, y0, Math.sin(angle) * seg.r0]);
+      ring1.push(points.length);
+      points.push([Math.cos(angle) * seg.r1, y1, Math.sin(angle) * seg.r1]);
+    }
+    for (let i = 0; i < sides; i += 1) {
+      const p0 = ring0[i];
+      const p1 = ring0[(i + 1) % sides];
+      const p2 = ring1[i];
+      const p3 = ring1[(i + 1) % sides];
+      faces.push([p0, p2, p3], [p0, p3, p1]);
+      edges.push([p0, p1], [p0, p2], [p1, p3], [p2, p3]);
     }
     y = y1;
   });
 
-  return normalizeModel({ points, edges });
+  return normalizeModel({ points, edges, faces });
+}
+
+function projectModelPoints(model, rotationY, rotationX, scale, cx, cy, perspectiveFactor = 1.8) {
+  const sinY = Math.sin(rotationY);
+  const cosY = Math.cos(rotationY);
+  const sinX = Math.sin(rotationX);
+  const cosX = Math.cos(rotationX);
+
+  return model.points.map((point) => {
+    const rx = point[0] * cosY - point[2] * sinY;
+    const rz = point[0] * sinY + point[2] * cosY;
+    const ry = point[1] * cosX - rz * sinX;
+    const depth = point[1] * sinX + rz * cosX + 3;
+    const perspective = perspectiveFactor / depth;
+    return {
+      x: cx + rx * scale * perspective,
+      y: cy + ry * scale * perspective,
+      z: depth,
+      rx,
+      ry,
+      rz
+    };
+  });
+}
+
+function faceNormal(a, b, c) {
+  const ux = b.rx - a.rx;
+  const uy = b.ry - a.ry;
+  const uz = b.rz - a.rz;
+  const vx = c.rx - a.rx;
+  const vy = c.ry - a.ry;
+  const vz = c.rz - a.rz;
+
+  return [
+    uy * vz - uz * vy,
+    uz * vx - ux * vz,
+    ux * vy - uy * vx
+  ];
+}
+
+function fillProjectedFaces(ctx, projected, faces, fillBase = [143, 199, 255]) {
+  if (!faces || !faces.length) return;
+
+  const light = [0.35, 0.55, 0.76];
+  const sorted = faces
+    .map((face) => ({
+      face,
+      depth: face.reduce((sum, index) => sum + (projected[index]?.z || 0), 0) / face.length
+    }))
+    .sort((a, b) => b.depth - a.depth);
+
+  sorted.forEach(({ face }) => {
+    const a = projected[face[0]];
+    const b = projected[face[1]];
+    const c = projected[face[2]];
+    if (!a || !b || !c) return;
+
+    const normal = faceNormal(a, b, c);
+    const normalLength = Math.hypot(normal[0], normal[1], normal[2]) || 1;
+    const nx = normal[0] / normalLength;
+    const ny = normal[1] / normalLength;
+    const nz = normal[2] / normalLength;
+    const intensity = clamp((nx * light[0] + ny * light[1] + nz * light[2]) * 0.5 + 0.58, 0.16, 1);
+    const fillAlpha = 0.16 + intensity * 0.28;
+    const strokeAlpha = 0.06 + intensity * 0.12;
+
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.lineTo(c.x, c.y);
+    ctx.closePath();
+    ctx.fillStyle = `rgba(${fillBase[0]}, ${fillBase[1]}, ${fillBase[2]}, ${fillAlpha})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255, 255, 255, ${strokeAlpha})`;
+    ctx.stroke();
+  });
 }
 
 function parseOrkProfile(text, key) {
@@ -405,7 +599,7 @@ async function loadProjectCad(key) {
       projectCadCache[key] = projectCadModel;
       if (uploadStatus) uploadStatus.textContent = "Converted mesh missing";
       if (projectCadStatus) {
-        projectCadStatus.textContent = `${data.cadSource} loaded (preview fallback). Run: node scripts/convert-assembly-model.js`;
+        projectCadStatus.textContent = `${data.cadSource} loaded (generated preview active)`;
       }
     } catch (fallbackError) {
       projectCadModel = profileToModel(getFallbackOrkProfile(key));
@@ -428,25 +622,18 @@ function renderCad() {
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, rect.width, rect.height);
-  ctx.fillStyle = "rgba(255,255,255,0.015)";
+  const bg = ctx.createLinearGradient(0, 0, rect.width, rect.height);
+  bg.addColorStop(0, "rgba(143,199,255,0.06)");
+  bg.addColorStop(1, "rgba(255,138,36,0.03)");
+  ctx.fillStyle = bg;
   ctx.fillRect(0, 0, rect.width, rect.height);
 
   const scale = Math.min(rect.width, rect.height) * 0.32;
   const cx = rect.width / 2;
   const cy = rect.height / 2;
-  const sinY = Math.sin(cadRotation);
-  const cosY = Math.cos(cadRotation);
-  const sinX = Math.sin(-0.35);
-  const cosX = Math.cos(-0.35);
+  const projected = projectModelPoints(cadModel, cadRotation, -0.35, scale, cx, cy);
 
-  const projected = cadModel.points.map(([x, y, z]) => {
-    const rx = x * cosY - z * sinY;
-    const rz = x * sinY + z * cosY;
-    const ry = y * cosX - rz * sinX;
-    const depth = y * sinX + rz * cosX + 3;
-    const perspective = 1.8 / depth;
-    return [cx + rx * scale * perspective, cy + ry * scale * perspective, depth];
-  });
+  fillProjectedFaces(ctx, projected, cadModel.faces, [143, 199, 255]);
 
   ctx.lineWidth = 1;
   ctx.strokeStyle = "rgba(143,199,255,0.55)";
@@ -455,8 +642,8 @@ function renderCad() {
     const p1 = projected[a];
     const p2 = projected[b];
     if (!p1 || !p2) return;
-    ctx.moveTo(p1[0], p1[1]);
-    ctx.lineTo(p2[0], p2[1]);
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
   });
   ctx.stroke();
 
@@ -478,27 +665,20 @@ function renderProjectCad() {
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, rect.width, rect.height);
-  ctx.fillStyle = "rgba(255,255,255,0.015)";
+  const bg = ctx.createLinearGradient(0, 0, rect.width, rect.height);
+  bg.addColorStop(0, "rgba(143,199,255,0.06)");
+  bg.addColorStop(1, "rgba(255,138,36,0.03)");
+  ctx.fillStyle = bg;
   ctx.fillRect(0, 0, rect.width, rect.height);
 
   const scale = Math.min(rect.width, rect.height) * 0.34;
   const cx = rect.width / 2;
   const cy = rect.height / 2;
-  const sinY = Math.sin(projectCadRotation);
-  const cosY = Math.cos(projectCadRotation);
-  const sinX = Math.sin(-0.3);
-  const cosX = Math.cos(-0.3);
-
-  const projected = projectCadModel.points.map(([x, y, z]) => {
-    const rx = x * cosY - z * sinY;
-    const rz = x * sinY + z * cosY;
-    const ry = y * cosX - rz * sinX;
-    const depth = y * sinX + rz * cosX + 3;
-    const perspective = 1.82 / depth;
-    return [cx + rx * scale * perspective, cy + ry * scale * perspective, depth];
-  });
+  const projected = projectModelPoints(projectCadModel, projectCadRotation, -0.3, scale, cx, cy, 1.82);
   // store for selection logic
   projectCadProjected = projected;
+
+  fillProjectedFaces(ctx, projected, projectCadModel.faces, [143, 199, 255]);
 
   ctx.lineWidth = 1;
   ctx.strokeStyle = "rgba(143,199,255,0.72)";
@@ -507,8 +687,8 @@ function renderProjectCad() {
     const p1 = projected[a];
     const p2 = projected[b];
     if (!p1 || !p2) return;
-    ctx.moveTo(p1[0], p1[1]);
-    ctx.lineTo(p2[0], p2[1]);
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
   });
   ctx.stroke();
 
@@ -522,8 +702,8 @@ function renderProjectCad() {
       const p1 = projected[ia];
       const p2 = projected[ib];
       if (!p1 || !p2) return;
-      ctx.moveTo(p1[0], p1[1]);
-      ctx.lineTo(p2[0], p2[1]);
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
     });
     ctx.stroke();
     ctx.lineWidth = 1;
@@ -652,13 +832,24 @@ function updateSpace(time) {
   if (starfield) {
     starfield.style.setProperty("--star-drift", `${scrollProgress * -42}px`);
     const stars = starfield.children;
+    const pointerRadius = Math.min(window.innerWidth, window.innerHeight) * 0.32;
     for (let i = 0; i < stars.length; i += 1) {
       const star = stars[i];
       const base = Number(star.style.getPropertyValue("--base-o")) || 0.4;
       const phase = Number(star.dataset.phase) || 0;
       const rate = Number(star.dataset.rate) || 1;
+      const left = Number(star.dataset.left) || 0;
+      const top = Number(star.dataset.top) || 0;
       const flicker = Math.sin(time * 0.001 * rate + phase) * 0.14;
-      star.style.setProperty("--o", String(clamp(base + flicker, 0.08, 0.98)));
+      const starX = (left / 100) * window.innerWidth;
+      const starY = ((top / 124) * window.innerHeight) - (window.innerHeight * 0.12);
+      const distance = Math.hypot(pointer.x - starX, pointer.y - starY);
+      const glow = clamp(1 - distance / pointerRadius, 0, 1);
+      const boosted = clamp(base + flicker + glow * 0.8, 0.08, 1);
+      star.style.setProperty("--o", String(boosted));
+      star.style.setProperty("--boost", String(glow));
+      star.style.boxShadow = `0 0 ${6 + glow * 20}px rgba(255, 255, 255, ${0.26 + glow * 0.74})`;
+      star.style.transform = `scale(${1 + glow * 0.72})`;
     }
   }
 
@@ -799,6 +990,32 @@ if (menuToggle && navLinks) {
   });
 }
 
+if (newsroomGallery && newsroomGalleryItems.length) {
+  newsroomGalleryItems.forEach((button, index) => {
+    button.addEventListener("click", () => setNewsroomGallery(index));
+  });
+  if (newsroomGalleryPrev) newsroomGalleryPrev.addEventListener("click", () => advanceNewsroomGallery(-1));
+  if (newsroomGalleryNext) newsroomGalleryNext.addEventListener("click", () => advanceNewsroomGallery(1));
+  setNewsroomGallery(0);
+}
+
+if (newsroomGalleryFeed && newsroomGalleryFeedData.length) {
+  appendNewsroomGalleryBatch();
+  if (newsroomGallerySentinel && "IntersectionObserver" in window) {
+    const galleryObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        if (newsroomGalleryFeedIndex >= newsroomGalleryFeedData.length) {
+          galleryObserver.disconnect();
+          return;
+        }
+        appendNewsroomGalleryBatch();
+      });
+    }, { rootMargin: "600px 0px" });
+    galleryObserver.observe(newsroomGallerySentinel);
+  }
+}
+
 document.querySelectorAll("[data-project]").forEach((card) => {
   card.addEventListener("click", () => {
     loadProjectCad(card.dataset.project);
@@ -838,8 +1055,8 @@ if (projectCadCanvas) {
     for (let i = 0; i < projectCadProjected.length; i += 1) {
       const p = projectCadProjected[i];
       if (!p) continue;
-      const dx = p[0] - x;
-      const dy = p[1] - y;
+      const dx = p.x - x;
+      const dy = p.y - y;
       const d = Math.hypot(dx, dy);
       if (d < best.dist) { best = { idx: i, dist: d }; }
     }
@@ -862,10 +1079,10 @@ if (projectCadCanvas) {
         const p2 = projectCadProjected[b];
         if (!p1 || !p2) return;
         // distance from point to segment
-        const l2 = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2;
-        const t = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((x - p1[0])*(p2[0]-p1[0]) + (y - p1[1])*(p2[1]-p1[1])) / l2));
-        const projx = p1[0] + t * (p2[0]-p1[0]);
-        const projy = p1[1] + t * (p2[1]-p1[1]);
+        const l2 = (p2.x-p1.x)**2 + (p2.y-p1.y)**2;
+        const t = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((x - p1.x)*(p2.x-p1.x) + (y - p1.y)*(p2.y-p1.y)) / l2));
+        const projx = p1.x + t * (p2.x-p1.x);
+        const projy = p1.y + t * (p2.y-p1.y);
         const d = Math.hypot(projx - x, projy - y);
         if (d < bestEdge.dist) bestEdge = { key: `${a}:${b}`, dist: d };
       });

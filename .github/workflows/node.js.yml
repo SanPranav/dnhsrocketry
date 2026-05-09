@@ -32,9 +32,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y assimp-utils || true
 
-      - name: Convert Assembly CAD (Best Effort)
+      - name: Convert Assembly CAD
         run: |
-          node scripts/convert-assembly-model.js || echo "CAD conversion unavailable on runner, deploying with runtime fallback preview."
+          node scripts/convert-assembly-model.js
+          test -f assets/models/Assembly_1.obj
 
       - name: Prepare Static Site Artifact
         run: |

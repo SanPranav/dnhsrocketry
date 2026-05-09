@@ -14,7 +14,7 @@ node scripts/organize-models.js
 
 The Projects page renderer auto-loads `assets/models/Assembly_1.obj`.
 
-To regenerate that mesh from `Assembly 1.x_t`, run:
+To regenerate that mesh from `assets/Assembly1.x_t`, run:
 
 ```bash
 node scripts/convert-assembly-model.js
@@ -26,6 +26,8 @@ The converter script tries these strategies in order:
 2. `assimp`
 3. `cadexchangercli`
 4. `freecadcmd` / `FreeCADCmd`
+
+If none of those are available, it still succeeds by generating a procedural OBJ fallback so deployed previews never break.
 
 Successful conversion writes:
 

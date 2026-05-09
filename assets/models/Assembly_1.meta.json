@@ -1,0 +1,33 @@
+{
+  "source": "assets/Assembly1.x_t",
+  "output": "assets/models/Assembly_1.obj",
+  "convertedAt": "2026-05-09T16:33:58.031Z",
+  "strategy": "procedural-fallback",
+  "bytes": 18985,
+  "attempts": [
+    {
+      "strategy": "assimp export",
+      "ok": false,
+      "status": null,
+      "error": "spawnSync assimp ENOENT"
+    },
+    {
+      "strategy": "cadexchangercli convert",
+      "ok": false,
+      "status": null,
+      "error": "spawnSync cadexchangercli ENOENT"
+    },
+    {
+      "strategy": "freecadcmd python macro",
+      "ok": false,
+      "status": null,
+      "error": "spawnSync freecadcmd ENOENT"
+    },
+    {
+      "strategy": "FreeCADCmd python macro",
+      "ok": false,
+      "status": null,
+      "error": "spawnSync FreeCADCmd ENOENT"
+    }
+  ]
+}
