@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNHS Rocketry Club | Contact</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="contact">
+  <div class="space-scene" aria-hidden="true">
+    <div class="noise-layer"></div>
+    <div class="nebula nebula-a"></div>
+    <div class="nebula nebula-b"></div>
+    <div class="starfield" id="starfield"></div>
+    <div class="cursor-field" id="cursorField"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="index.html" aria-label="DNHS Rocketry Club home">
+        <div class="logo"><img src="images/logo.png" alt="DNHS Rocketry Club Logo"></div>
+        DNHS Rocketry Club
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="projects.html">Projects</a>
+        <a href="crew.html">Crew</a>
+        <a href="newsroom.html">Newsroom</a>
+        <a class="active apply-link" href="contact.html">Contact Us</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main contact-page-main">
+    <section class="section contact-hero reveal">
+      <div class="hero-split">
+        <div class="section-copy narrow">
+          <p class="eyebrow">Contact Us</p>
+          <h1>Join the next launch cycle.</h1>
+          <p class="page-lede">Send a note to the DNHS Rocketry Club leadership team. This form forwards directly to dnhsrocketry@gmail.com.</p>
+        </div>
+        <figure class="hero-side-image">
+        <img src="images/team-1.png" alt="">
+          <figcaption>2025 DNHS Rocketry Workshop</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section contact-form-section reveal" aria-label="Contact form">
+      <div class="contact-grid">
+        <aside class="contact-sidecard">
+          <p class="eyebrow">What To Include</p>
+          <h2>Tell us how you want to contribute.</h2>
+          <p>Share your grade, interests, and past experience in propulsion, avionics, structures, recovery, software, or outreach.</p>
+          <p>We review submissions weekly and follow up with onboarding details.</p>
+          <div class="location-card" aria-label="Location details">
+            <p class="eyebrow">Location</p>
+            <strong>Del Norte High School</strong>
+            <p>16601 Nighthawk Ln, San Diego, CA 92127</p>
+            <a class="text-link" href="https://maps.google.com/?q=Del+Norte+High+School+16601+Nighthawk+Ln+San+Diego+CA+92127" target="_blank" rel="noreferrer">Open in Maps</a>
+          </div>
+        </aside>
+
+        <form class="contact-form" action="https://formsubmit.co/dnhsrocketry@gmail.com" method="POST">
+          <input type="hidden" name="_subject" value="New DNHS Rocketry Contact Form Submission">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_next" value="thank-you.html">
+          <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="contact-honey" aria-hidden="true">
+
+          <label for="contactName">Full Name</label>
+          <input id="contactName" name="name" type="text" required placeholder="Your name">
+
+          <label for="contactEmail">Email</label>
+          <input id="contactEmail" name="email" type="email" required placeholder="you@example.com">
+
+          <label for="contactGrade">Grade</label>
+          <select id="contactGrade" name="grade" required>
+            <option value="" selected disabled>Select grade</option>
+            <option>9</option>
+            <option>10</option>
+            <option>11</option>
+            <option>12</option>
+            <option>Other</option>
+          </select>
+
+          <label for="contactInterest">Primary Interest</label>
+          <select id="contactInterest" name="primary_interest" required>
+            <option value="" selected disabled>Select an area</option>
+            <option>Propulsion</option>
+            <option>Avionics</option>
+            <option>Recovery</option>
+            <option>Structures</option>
+            <option>Payload</option>
+            <option>Operations</option>
+            <option>Outreach / Sponsorship</option>
+          </select>
+
+          <label for="contactMessage">Message</label>
+          <textarea id="contactMessage" name="message" rows="7" required placeholder="Tell us why you want to join and what you'd like to work on."></textarea>
+
+          <button class="primary-button" type="submit">Contact Us</button>
+          <p class="contact-note">By submitting, you agree to be contacted by the DNHS Rocketry Club team.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <p class="eyebrow">Made Possible By</p>
+      <div class="footer-sponsors" aria-label="Footer sponsor logos">
+        <img src="images/sponsor-1.png" alt="Sponsor one logo">
+        <img src="images/sponsor-2.png" alt="Sponsor two logo">
+        <img src="images/sponsor-1.png" alt="Sponsor three logo">
+        <img src="images/sponsor-2.png" alt="Sponsor four logo">
+      </div>
+      <p class="footer-meta">DNHS Rocketry Club // Del Norte High School</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

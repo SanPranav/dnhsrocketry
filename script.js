@@ -12,6 +12,9 @@ const heroMedia = document.querySelector(".hero-media");
 const cadCanvas = document.getElementById("cadCanvas");
 const cadInput = document.getElementById("cadInput");
 const cadStatus = document.getElementById("cadStatus");
+const projectCadCanvas = document.getElementById("projectCadCanvas");
+const projectCadStatus = document.getElementById("projectCadStatus");
+const projectCadButtons = document.querySelectorAll("[data-render-project]");
 
 const pointer = {
   x: window.innerWidth * 0.5,
@@ -21,37 +24,26 @@ const pointer = {
 };
 
 const projectData = {
-  phoenix: {
-    kicker: "Recovery Validation",
-    title: "SR-1 Phoenix",
-    image: "images/rocket-1.jpg",
-    description: "A low-altitude systems vehicle built to validate recovery timing, fin stability, and post-flight inspection procedures before higher energy launches.",
-    specs: ["Mission: Recovery shakedown", "Altitude: 3.2 km", "Propellant: Solid composite", "Airframe: Fiberglass test article", "Recovery: Drogue + main", "Status: Ground review"],
-    cad: "assets/openrocket/sr-1-phoenix.ork",
-    video: "videos/sr-1-phoenix-test.mp4"
-  },
-  alpha: {
-    kicker: "Avionics Qualification",
-    title: "DNHS-Alpha",
-    image: "images/rocket-2.jpg",
-    description: "A high-power electronics platform for flight computer validation, sensor logging, rail departure analysis, and data review after recovery.",
-    specs: ["Mission: Avionics test", "Altitude: 5.8 km", "Propellant: Hybrid test grain", "Airframe: Carbon reinforced", "Payload: Dual logger bay", "Status: Simulation pass"],
-    cad: "assets/openrocket/dnhs-alpha.ork",
-    video: "videos/dnhs-alpha-test.mp4"
-  },
-  aurora: {
-    kicker: "Payload Flight",
-    title: "Aurora Payload",
-    image: "images/rocket-3.jpg",
-    description: "A compact science payload launch focused on vibration isolation, thermal behavior, clean bay access, and reliable recovery tracking.",
-    specs: ["Mission: Payload ascent", "Altitude: 2.4 km", "Propellant: Solid motor", "Bay: Modular payload rail", "Recovery: GPS beacon", "Status: Payload fit check"],
-    cad: "assets/openrocket/aurora-payload.ork",
-    video: "videos/aurora-payload-test.mp4"
+  natsqual: {
+    kicker: "2026 Nationals Qual Rocket",
+    title: "Zenith",
+    image: "images/rocket-1.png",
+    description: "Someone Write A description here",
+    specs: ["Mission: National TARC Level 1", "Altitude: 750 ft", "Motor: Solid composite", "Airframe: Fiberglass test article", "Recovery: Drogue + main", "Status: Ground review"],
+    cad: "Assembly 1.x_t",
+    video: "videos/launch.mp4"
   }
+  // additional projects can be added here following the same structure
 };
 
 let cadModel = createPlaceholderModel();
 let cadRotation = 0;
+let projectCadModel = createPlaceholderModel();
+let projectCadRotation = 0;
+let activeProjectRender = "natsqual";
+const projectCadCache = {};
+let projectCadProjected = [];
+let projectSelection = { vertex: null, edges: new Set() };
 
 function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -183,6 +175,166 @@ function normalizeModel(model) {
   };
 }
 
+function getFallbackOrkProfile(key) {
+  if (key === "alpha") {
+    return [
+      { length: 0.3, r0: 0.03, r1: 0.15 },
+      { length: 0.25, r0: 0.15, r1: 0.15 },
+      { length: 0.4, r0: 0.15, r1: 0.16 },
+      { length: 0.35, r0: 0.16, r1: 0.16 },
+      { length: 0.25, r0: 0.16, r1: 0.14 }
+    ];
+  }
+  if (key === "aurora") {
+    return [
+      { length: 0.26, r0: 0.03, r1: 0.13 },
+      { length: 0.32, r0: 0.13, r1: 0.13 },
+      { length: 0.3, r0: 0.13, r1: 0.145 },
+      { length: 0.3, r0: 0.145, r1: 0.145 },
+      { length: 0.22, r0: 0.145, r1: 0.12 }
+    ];
+  }
+  return [
+    { length: 0.28, r0: 0.03, r1: 0.14 },
+    { length: 0.28, r0: 0.14, r1: 0.14 },
+    { length: 0.34, r0: 0.14, r1: 0.15 },
+    { length: 0.34, r0: 0.15, r1: 0.15 },
+    { length: 0.2, r0: 0.15, r1: 0.13 }
+  ];
+}
+
+function profileToModel(profile) {
+  const points = [];
+  const edges = [];
+  const sides = 26;
+  let y = -1;
+  const total = profile.reduce((sum, seg) => sum + seg.length, 0) || 1;
+
+  profile.forEach((seg) => {
+    const y0 = y;
+    const y1 = y + (seg.length / total) * 2;
+    for (let i = 0; i < sides; i += 1) {
+      const a0 = (i / sides) * Math.PI * 2;
+      const a1 = ((i + 1) / sides) * Math.PI * 2;
+
+      const p0 = [Math.cos(a0) * seg.r0, y0, Math.sin(a0) * seg.r0];
+      const p1 = [Math.cos(a1) * seg.r0, y0, Math.sin(a1) * seg.r0];
+      const p2 = [Math.cos(a0) * seg.r1, y1, Math.sin(a0) * seg.r1];
+      const p3 = [Math.cos(a1) * seg.r1, y1, Math.sin(a1) * seg.r1];
+
+      const start = points.length;
+      points.push(p0, p1, p2, p3);
+      edges.push([start, start + 1], [start, start + 2], [start + 1, start + 3], [start + 2, start + 3]);
+    }
+    y = y1;
+  });
+
+  return normalizeModel({ points, edges });
+}
+
+function parseOrkProfile(text, key) {
+  const lengths = [...text.matchAll(/<length>([0-9.]+)<\/length>/g)].map((m) => Number(m[1])).filter((v) => Number.isFinite(v) && v > 0);
+  const radii = [...text.matchAll(/<(?:outerradius|radius)>([0-9.]+)<\/(?:outerradius|radius)>/g)].map((m) => Number(m[1])).filter((v) => Number.isFinite(v) && v > 0);
+
+  if (!lengths.length) return getFallbackOrkProfile(key);
+
+  const trimmedLengths = lengths.slice(0, 6);
+  const profile = trimmedLengths.map((length, index) => {
+    const r = radii[index] || radii[radii.length - 1] || 0.14;
+    const nextR = radii[index + 1] || r;
+    return {
+      length,
+      r0: Math.max(0.02, Math.min(0.26, r)),
+      r1: Math.max(0.02, Math.min(0.26, nextR))
+    };
+  });
+
+  return profile.length ? profile : getFallbackOrkProfile(key);
+}
+
+function parseOrkXmlToModel(text, key) {
+  const profile = parseOrkProfile(text, key);
+  return profileToModel(profile);
+}
+
+function extractOrkXmlFromBuffer(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const decoder = new TextDecoder();
+  const sniff = decoder.decode(bytes.slice(0, Math.min(bytes.length, 128)));
+
+  if (sniff.includes("<openrocket") || sniff.trimStart().startsWith("<?xml")) {
+    return decoder.decode(bytes);
+  }
+
+  // OpenRocket .ork files are commonly ZIP containers with an inner rocket.ork XML file.
+  if ((bytes[0] === 0x50 && bytes[1] === 0x4b) && typeof window.fflate !== "undefined") {
+    try {
+      const archive = window.fflate.unzipSync(bytes);
+      const names = Object.keys(archive);
+      const inner = names.find((n) => /rocket\.ork$/i.test(n)) || names.find((n) => /\.ork$/i.test(n)) || names.find((n) => /\.xml$/i.test(n));
+      if (inner && archive[inner]) {
+        return window.fflate.strFromU8(archive[inner]);
+      }
+    } catch (e) {
+      return "";
+    }
+  }
+
+  return "";
+}
+
+async function loadProjectCad(key) {
+  if (!projectData[key]) return;
+
+  activeProjectRender = key;
+  if (projectCadButtons.length) {
+    projectCadButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.renderProject === key);
+    });
+  }
+
+  if (projectCadCache[key]) {
+    projectCadModel = projectCadCache[key];
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} ORK render active`;
+    return;
+  }
+
+  try {
+    if (projectCadStatus) projectCadStatus.textContent = `Loading ${projectData[key].cad}`;
+    const url = encodeURI(projectData[key].cad);
+    const response = await fetch(url);
+    const buffer = await response.arrayBuffer();
+    const name = projectData[key].cad;
+    // Try ORK extraction first (handles zipped ORK or XML). If not, try known formats.
+    const xml = extractOrkXmlFromBuffer(buffer);
+    let model;
+    if (xml) {
+      model = parseOrkXmlToModel(xml, key);
+    } else {
+      // Attempt to guess format from bytes
+      const ext = (name.split('.').pop() || '').toLowerCase();
+      if (ext === 'obj') {
+        model = parseObj(new TextDecoder().decode(buffer));
+      } else if (ext === 'stl') {
+        model = parseStl(buffer);
+      } else if (ext === 'ork') {
+        // fallback: try reading as text
+        model = parseOrkXmlToModel(new TextDecoder().decode(buffer), key);
+      } else {
+        // Unsupported: show fallback model but indicate file loaded
+        model = profileToModel(getFallbackOrkProfile(key));
+        if (projectCadStatus) projectCadStatus.textContent = `${name} loaded (preview unavailable)`;
+      }
+    }
+    projectCadCache[key] = model;
+    projectCadModel = model;
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} ORK render active`;
+  } catch (error) {
+    projectCadModel = profileToModel(getFallbackOrkProfile(key));
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} fallback render active`;
+  }
+}
+
 function renderCad() {
   if (!cadCanvas) return;
 
@@ -233,6 +385,75 @@ function renderCad() {
   cadRotation += 0.006;
 }
 
+function renderProjectCad() {
+  if (!projectCadCanvas) return;
+
+  const ctx = projectCadCanvas.getContext("2d");
+  const rect = projectCadCanvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  if (projectCadCanvas.width !== Math.floor(rect.width * dpr) || projectCadCanvas.height !== Math.floor(rect.height * dpr)) {
+    projectCadCanvas.width = Math.floor(rect.width * dpr);
+    projectCadCanvas.height = Math.floor(rect.height * dpr);
+  }
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  ctx.fillStyle = "rgba(255,255,255,0.015)";
+  ctx.fillRect(0, 0, rect.width, rect.height);
+
+  const scale = Math.min(rect.width, rect.height) * 0.34;
+  const cx = rect.width / 2;
+  const cy = rect.height / 2;
+  const sinY = Math.sin(projectCadRotation);
+  const cosY = Math.cos(projectCadRotation);
+  const sinX = Math.sin(-0.3);
+  const cosX = Math.cos(-0.3);
+
+  const projected = projectCadModel.points.map(([x, y, z]) => {
+    const rx = x * cosY - z * sinY;
+    const rz = x * sinY + z * cosY;
+    const ry = y * cosX - rz * sinX;
+    const depth = y * sinX + rz * cosX + 3;
+    const perspective = 1.82 / depth;
+    return [cx + rx * scale * perspective, cy + ry * scale * perspective, depth];
+  });
+  // store for selection logic
+  projectCadProjected = projected;
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(143,199,255,0.72)";
+  ctx.beginPath();
+  projectCadModel.edges.forEach(([a, b]) => {
+    const p1 = projected[a];
+    const p2 = projected[b];
+    if (!p1 || !p2) return;
+    ctx.moveTo(p1[0], p1[1]);
+    ctx.lineTo(p2[0], p2[1]);
+  });
+  ctx.stroke();
+
+  // draw selection overlay if present
+  if (projectSelection.edges && projectSelection.edges.size) {
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = "rgba(255,200,80,0.95)";
+    ctx.beginPath();
+    projectSelection.edges.forEach((key) => {
+      const [ia, ib] = key.split(':').map(Number);
+      const p1 = projected[ia];
+      const p2 = projected[ib];
+      if (!p1 || !p2) return;
+      ctx.moveTo(p1[0], p1[1]);
+      ctx.lineTo(p2[0], p2[1]);
+    });
+    ctx.stroke();
+    ctx.lineWidth = 1;
+  }
+
+  ctx.strokeStyle = "rgba(255,255,255,0.13)";
+  ctx.strokeRect(16, 16, rect.width - 32, rect.height - 32);
+  if (projectAutoRotate) projectCadRotation += projectRotateSpeed;
+}
+
 function updateLaunchFilm() {
   if (!launchScroll || !launchSticky) return;
 
@@ -244,7 +465,102 @@ function updateLaunchFilm() {
   launchSticky.style.setProperty("--video-opacity", String(0.62 + progress * 0.34));
 
   if (launchVideo && Number.isFinite(launchVideo.duration) && launchVideo.duration > 0) {
-    launchVideo.currentTime = launchVideo.duration * progress;
+    const duration = launchVideo.duration;
+    const rangeStart = clamp(Number(launchVideo.dataset.rangeStart ?? 0), 0, duration);
+    const parsedRangeEnd = Number(launchVideo.dataset.rangeEnd);
+    const rangeEnd = clamp(Number.isFinite(parsedRangeEnd) ? parsedRangeEnd : duration, rangeStart, duration);
+    const target = rangeStart + (rangeEnd - rangeStart) * progress;
+    try {
+      // Avoid seeking while the player is already seeking
+      if (launchVideo.seeking) return;
+      // Pause while scrubbing to avoid playback conflicts
+      try { launchVideo.pause(); } catch (e) { }
+      // Only perform a seek when difference is noticeable
+      if (Math.abs((launchVideo.currentTime || 0) - target) > 0.03) {
+        if (typeof launchVideo.fastSeek === 'function') {
+          try { launchVideo.fastSeek(target); } catch (e) { launchVideo.currentTime = target; }
+        } else {
+          launchVideo.currentTime = target;
+        }
+      }
+      // Keep it silent and non-interactive.
+      launchVideo.muted = true;
+      launchVideo.controls = false;
+      if (progress <= 0.001 || progress >= 0.999) {
+        // Stay paused at ends so it doesn't continue decoding frames
+        try { launchVideo.pause(); } catch (e) { }
+      }
+    } catch (e) { /* ignore seek errors */ }
+  }
+}
+
+// Ensure we update scrub after metadata is available
+if (launchVideo) {
+  // keep launch film muted and controlled by scroll position
+  try { launchVideo.muted = true; } catch (e) { /* ignore */ }
+  try { launchVideo.controls = false; } catch (e) { /* ignore */ }
+  if (Number.isFinite(launchVideo.duration) && launchVideo.duration > 0) {
+    updateLaunchFilm();
+    try { launchVideo.play(); } catch (e) { /* ignore */ }
+  } else {
+    launchVideo.addEventListener("loadedmetadata", () => {
+      try { updateLaunchFilm(); launchVideo.play(); } catch (e) { /* ignore */ }
+    }, { once: true });
+  }
+}
+
+// Project renderer uploader and controls
+let projectAutoRotate = true;
+let projectRotateSpeed = 0.0055;
+
+function setupProjectRendererControls() {
+  const status = document.getElementById('projectUploadStatus');
+  const autoToggle = document.getElementById('autoRotateToggle');
+  const speed = document.getElementById('rotateSpeed');
+
+  if (autoToggle) {
+    projectAutoRotate = !!autoToggle.checked;
+    autoToggle.addEventListener('change', () => { projectAutoRotate = !!autoToggle.checked; });
+  }
+  if (speed) {
+    projectRotateSpeed = Number(speed.value) || 0.0055;
+    speed.addEventListener('input', () => { projectRotateSpeed = Number(speed.value) || 0.0055; });
+  }
+}
+
+window.addEventListener('load', () => { setupProjectRendererControls(); });
+
+async function loadExternalCad(url, name) {
+  try {
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    if (ext === 'ork') {
+      const buffer = await (await fetch(url)).arrayBuffer();
+      const xml = extractOrkXmlFromBuffer(buffer);
+      const model = xml ? parseOrkXmlToModel(xml, name) : profileToModel(getFallbackOrkProfile(name));
+      projectCadModel = model;
+      projectCadRotation = 0;
+      if (projectCadStatus) projectCadStatus.textContent = xml ? `${name} ORK render active` : `${name} ORK fallback render active`;
+      return;
+    }
+    if (ext === 'obj') {
+      const text = await (await fetch(url)).text();
+      const model = parseObj(text);
+      projectCadModel = model;
+      projectCadRotation = 0;
+      if (projectCadStatus) projectCadStatus.textContent = `${name} OBJ render active`;
+      return;
+    }
+    if (ext === 'stl') {
+      const buffer = await (await fetch(url)).arrayBuffer();
+      const model = parseStl(buffer);
+      projectCadModel = model;
+      projectCadRotation = 0;
+      if (projectCadStatus) projectCadStatus.textContent = `${name} STL render active`;
+      return;
+    }
+    if (projectCadStatus) projectCadStatus.textContent = `Cannot render ${name}`;
+  } catch (e) {
+    if (projectCadStatus) projectCadStatus.textContent = `Error loading ${name}`;
   }
 }
 
@@ -299,6 +615,22 @@ function openProjectModal(key) {
   document.getElementById("modalCad").href = data.cad;
   document.getElementById("modalVideo").href = data.video;
 
+  // Inline modal video player (if present) — prefer inline playback when available
+  const modalVideoPlayer = document.getElementById("modalVideoPlayer");
+  const modalImageEl = document.getElementById("modalImage");
+  if (modalVideoPlayer && data.video) {
+    modalVideoPlayer.src = data.video;
+    modalVideoPlayer.muted = true;
+    modalVideoPlayer.style.display = "block";
+    if (modalImageEl) modalImageEl.style.display = "none";
+    try { modalVideoPlayer.load(); } catch (e) { /* ignore */ }
+  } else if (modalVideoPlayer) {
+    try { modalVideoPlayer.pause(); } catch (e) { }
+    modalVideoPlayer.removeAttribute('src');
+    modalVideoPlayer.style.display = "none";
+    if (modalImageEl) modalImageEl.style.display = "block";
+  }
+
   const specs = document.getElementById("modalSpecs");
   specs.replaceChildren(...data.specs.map((item) => {
     const span = document.createElement("span");
@@ -316,12 +648,22 @@ function closeProjectModal() {
   projectModal.classList.remove("open");
   projectModal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
+  // stop/clear modal inline video to free resources
+  const modalVideoPlayer = document.getElementById("modalVideoPlayer");
+  if (modalVideoPlayer) {
+    try { modalVideoPlayer.pause(); } catch (e) { }
+    modalVideoPlayer.removeAttribute('src');
+    modalVideoPlayer.style.display = "none";
+    const modalImageEl = document.getElementById("modalImage");
+    if (modalImageEl) modalImageEl.style.display = "block";
+  }
 }
 
 function animate(time) {
   updateLaunchFilm();
   updateSpace(time);
   renderCad();
+  renderProjectCad();
   requestAnimationFrame(animate);
 }
 
@@ -377,14 +719,82 @@ if (menuToggle && navLinks) {
 }
 
 document.querySelectorAll("[data-project]").forEach((card) => {
-  card.addEventListener("click", () => openProjectModal(card.dataset.project));
+  card.addEventListener("click", () => {
+    loadProjectCad(card.dataset.project);
+    openProjectModal(card.dataset.project);
+  });
   card.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
+      loadProjectCad(card.dataset.project);
       openProjectModal(card.dataset.project);
     }
   });
 });
+
+if (projectCadButtons.length) {
+  projectCadButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      loadProjectCad(button.dataset.renderProject);
+    });
+  });
+
+  loadProjectCad(activeProjectRender);
+}
+
+// Selection: allow clicking the project canvas to select vertex/edges
+if (projectCadCanvas) {
+  projectCadCanvas.addEventListener('click', (ev) => {
+    const rect = projectCadCanvas.getBoundingClientRect();
+    const x = ev.clientX - rect.left;
+    const y = ev.clientY - rect.top;
+    if (!projectCadProjected || !projectCadProjected.length) return;
+
+    // find nearest vertex
+    let best = { idx: -1, dist: Infinity };
+    for (let i = 0; i < projectCadProjected.length; i += 1) {
+      const p = projectCadProjected[i];
+      if (!p) continue;
+      const dx = p[0] - x;
+      const dy = p[1] - y;
+      const d = Math.hypot(dx, dy);
+      if (d < best.dist) { best = { idx: i, dist: d }; }
+    }
+
+    const threshold = Math.max(12, Math.min(30, (rect.width + rect.height) * 0.01));
+    projectSelection.vertex = null;
+    projectSelection.edges.clear();
+    if (best.dist <= threshold) {
+      projectSelection.vertex = best.idx;
+      // collect connected edges
+      projectCadModel.edges.forEach(([a, b]) => {
+        if (a === best.idx || b === best.idx) projectSelection.edges.add(`${a}:${b}`);
+      });
+      if (projectCadStatus) projectCadStatus.textContent = `Selected vertex ${best.idx} — ${projectSelection.edges.size} edges`;
+    } else {
+      // try nearest edge to click
+      let bestEdge = { key: null, dist: Infinity };
+      projectCadModel.edges.forEach(([a, b]) => {
+        const p1 = projectCadProjected[a];
+        const p2 = projectCadProjected[b];
+        if (!p1 || !p2) return;
+        // distance from point to segment
+        const l2 = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2;
+        const t = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((x - p1[0])*(p2[0]-p1[0]) + (y - p1[1])*(p2[1]-p1[1])) / l2));
+        const projx = p1[0] + t * (p2[0]-p1[0]);
+        const projy = p1[1] + t * (p2[1]-p1[1]);
+        const d = Math.hypot(projx - x, projy - y);
+        if (d < bestEdge.dist) bestEdge = { key: `${a}:${b}`, dist: d };
+      });
+      if (bestEdge.dist <= threshold) {
+        projectSelection.edges.add(bestEdge.key);
+        if (projectCadStatus) projectCadStatus.textContent = `Selected edge ${bestEdge.key}`;
+      } else {
+        if (projectCadStatus) projectCadStatus.textContent = `No part selected`;
+      }
+    }
+  });
+}
 
 document.querySelectorAll("[data-close-modal]").forEach((control) => {
   control.addEventListener("click", closeProjectModal);
@@ -396,3 +806,50 @@ window.addEventListener("keydown", (event) => {
 
 createStars();
 requestAnimationFrame(animate);
+
+// Header hide/show on scroll: hide on scroll down, show on scroll up; compact when small scroll
+(function headerScrollBehavior() {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+  let lastY = window.scrollY || 0;
+  let ticking = false;
+
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = window.scrollY || 0;
+      const delta = y - lastY;
+
+      // keep header visible if nav menu is open
+      const navOpen = document.getElementById('navLinks') && document.getElementById('navLinks').classList.contains('open');
+      if (navOpen) {
+        header.classList.remove('nav-hidden');
+        header.classList.remove('compact');
+        lastY = y;
+        ticking = false;
+        return;
+      }
+
+      if (y > 120 && delta > 8) {
+        // user scrolled down -> hide
+        header.classList.add('nav-hidden');
+        header.classList.remove('compact');
+      } else if (delta < -8) {
+        // scrolled up -> show
+        header.classList.remove('nav-hidden');
+        header.classList.add('compact');
+      } else {
+        // small moves: make compact if scrolled a bit
+        if (y > 60) header.classList.add('compact'); else header.classList.remove('compact');
+      }
+
+      lastY = y;
+      ticking = false;
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  // ensure correct initial state
+  onScroll();
+})();

@@ -29,8 +29,7 @@
         <a href="projects.html">Projects</a>
         <a href="crew.html">Crew</a>
         <a href="newsroom.html">Newsroom</a>
-        <a href="#contact">Contact</a>
-        <a class="apply-link" href="#contact">Apply</a>
+        <a class="apply-link" href="contact.html">Contact Us</a>
       </nav>
     </div>
   </header>
@@ -38,7 +37,7 @@
   <main>
     <section class="home-hero cinematic-section reveal">
       <div class="hero-media" aria-hidden="true">
-        <img src="images/rocket-1.jpg" alt="">
+        <img src="images/rocket.png" alt="">
       </div>
       <div class="section-copy">
         <p class="eyebrow">DNHS Rocketry Club</p>
@@ -51,61 +50,20 @@
       </div>
     </section>
 
-    <section class="cinematic-section mission-section reveal">
-      <div class="section-copy narrow">
-        <p class="eyebrow">Mission Architecture</p>
-        <h2>Precision before altitude.</h2>
-        <p>Every build is organized around subsystem ownership: propulsion, structures, avionics, recovery, payload, and operations. The goal is not just to fly. The goal is to understand why it flew.</p>
-      </div>
-      <div class="mission-grid" aria-label="Rocketry subsystems">
-        <article><span>01</span><strong>Structures</strong><p>Airframe geometry, fin alignment, strength, and fit.</p></article>
-        <article><span>02</span><strong>Avionics</strong><p>Flight computers, logging, sensors, and validation.</p></article>
-        <article><span>03</span><strong>Recovery</strong><p>Deployment timing, tracking, and safe return.</p></article>
-        <article><span>04</span><strong>Payload</strong><p>Experiment integration, isolation, and access.</p></article>
-      </div>
-    </section>
-
     <section class="launch-scroll reveal" aria-label="Launch film">
       <div class="launch-sticky">
-        <video id="launchVideo" class="launch-video" muted playsinline preload="metadata" poster="images/rocket-2.jpg">
+        <video id="launchVideo" class="launch-video" muted playsinline autoplay loop preload="auto" data-range-start="0" data-range-end="2">
           <source src="videos/launch.mp4" type="video/mp4">
         </video>
-        <div class="launch-poster" aria-hidden="true"></div>
         <div class="section-copy">
           <p class="eyebrow">Launch Film</p>
           <h2>Where designs turn into distance.</h2>
-          <p>Drop your launch clip at <span>videos/launch.mp4</span>. This scene smoothly scrubs through the footage as the page moves.</p>
         </div>
       </div>
     </section>
 
-    <section class="cinematic-section systems-section reveal">
-      <div class="section-copy">
-        <p class="eyebrow">Engineering Systems</p>
-        <h2>Built like documentation. Presented like a mission.</h2>
-        <p>Projects and crew pages keep the technical information structured and readable. The homepage carries the atmosphere; the supporting pages carry the engineering record.</p>
-      </div>
-      <div class="split-links">
-        <a href="projects.html"><span>Open</span> Technical Projects</a>
-        <a href="crew.html"><span>Open</span> Engineering Crew</a>
-      </div>
-    </section>
 
-    <section class="cinematic-section cad-section reveal">
-      <div class="section-copy narrow">
-        <p class="eyebrow">CAD Bay</p>
-        <h2>Inspect the vehicle before it flies.</h2>
-        <p>Load an STL or OBJ file to preview a rotating wireframe model directly on the homepage. This is intentionally lightweight and offline-friendly.</p>
-        <label class="cad-upload">
-          <input id="cadInput" type="file" accept=".stl,.obj">
-          Load CAD File
-        </label>
-      </div>
-      <div class="cad-viewer">
-        <canvas id="cadCanvas" width="900" height="640" aria-label="3D CAD preview"></canvas>
-        <div class="cad-status" id="cadStatus">Placeholder model active. Load STL or OBJ.</div>
-      </div>
-    </section>
+    <!-- CAD Bay removed per request -->
 
     <section class="cinematic-section newsroom-preview reveal">
       <div class="section-copy">
@@ -124,14 +82,57 @@
     <section class="cinematic-section sponsors-section reveal">
       <div class="section-copy">
         <p class="eyebrow">Sponsors</p>
-        <h2>Partners who help the team build.</h2>
-        <p>Use this area for local companies, parent donors, university partners, and technical sponsors supporting materials, tools, launch fees, and testing.</p>
+        <h2>Made possible by our sponsors.</h2>
+        <p>Presented by our partner network across platinum, gold, and silver levels.</p>
+      </div>
+      <div class="sponsor-levels" aria-label="Sponsor levels">
+        <article class="sponsor-level sponsor-level-platinum">
+          <p class="eyebrow">Presented By</p>
+          <h3>Platinum Sponsors</h3>
+          <div class="level-logos">
+            <img src="images/sponsor-1.png" alt="Platinum sponsor one">
+            <img src="images/sponsor-2.png" alt="Platinum sponsor two">
+          </div>
+        </article>
+        <article class="sponsor-level sponsor-level-gold">
+          <p class="eyebrow">Powering Build Season</p>
+          <h3>Gold Sponsors</h3>
+          <div class="level-logos">
+            <img src="images/sponsor-2.png" alt="Gold sponsor one">
+            <img src="images/sponsor-1.png" alt="Gold sponsor two">
+            <img src="images/sponsor-2.png" alt="Gold sponsor three">
+          </div>
+        </article>
+        <article class="sponsor-level sponsor-level-silver">
+          <p class="eyebrow">Supporting Team Ops</p>
+          <h3>Silver Sponsors</h3>
+          <div class="level-logos">
+            <img src="images/sponsor-1.png" alt="Silver sponsor one">
+            <img src="images/sponsor-2.png" alt="Silver sponsor two">
+            <img src="images/sponsor-1.png" alt="Silver sponsor three">
+            <img src="images/sponsor-2.png" alt="Silver sponsor four">
+          </div>
+        </article>
+      </div>
+      <div class="sponsor-scroll" aria-label="Sponsor scroll rail">
+        <div class="sponsor-track">
+          <img src="images/sponsor-1.png" alt="Sponsor one logo">
+          <img src="images/sponsor-2.png" alt="Sponsor two logo">
+          <img src="images/sponsor-1.png" alt="Sponsor one logo">
+          <img src="images/sponsor-2.png" alt="Sponsor two logo">
+          <img src="images/sponsor-1.png" alt="Sponsor one logo">
+          <img src="images/sponsor-2.png" alt="Sponsor two logo">
+          <img src="images/sponsor-1.png" alt="Sponsor one logo">
+          <img src="images/sponsor-2.png" alt="Sponsor two logo">
+        </div>
       </div>
       <div class="sponsor-wall">
-        <article><img src="images/sponsor-1.png" alt="Sponsor placeholder"></article>
-        <article><img src="images/sponsor-2.png" alt="Sponsor placeholder"></article>
-        <article><img src="images/sponsor-1.png" alt="Sponsor placeholder"></article>
-        <article><img src="images/sponsor-2.png" alt="Sponsor placeholder"></article>
+        <article><img src="images/sponsor-1.png" alt="Sponsor logo one"></article>
+        <article><img src="images/sponsor-2.png" alt="Sponsor logo two"></article>
+        <article><img src="images/sponsor-1.png" alt="Sponsor logo three"></article>
+        <article><img src="images/sponsor-2.png" alt="Sponsor logo four"></article>
+        <article><img src="images/sponsor-1.png" alt="Sponsor logo five"></article>
+        <article><img src="images/sponsor-2.png" alt="Sponsor logo six"></article>
       </div>
     </section>
 
@@ -140,10 +141,23 @@
         <p class="eyebrow">Apply</p>
         <h2>Join the next build cycle.</h2>
         <p>Bring curiosity, careful hands, and a willingness to test ideas until the data makes sense.</p>
-        <a class="primary-button" href="mailto:rocketry@example.com">Contact the Team</a>
+        <a class="primary-button" href="contact.html">Contact Us</a>
       </div>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <p class="eyebrow">Made Possible By</p>
+      <div class="footer-sponsors" aria-label="Footer sponsor logos">
+        <img src="images/sponsor-1.png" alt="Sponsor one logo">
+        <img src="images/sponsor-2.png" alt="Sponsor two logo">
+        <img src="images/sponsor-1.png" alt="Sponsor three logo">
+        <img src="images/sponsor-2.png" alt="Sponsor four logo">
+      </div>
+      <p class="footer-meta">DNHS Rocketry Club // Del Norte High School</p>
+    </div>
+  </footer>
 
   <script src="script.js"></script>
 </body>
