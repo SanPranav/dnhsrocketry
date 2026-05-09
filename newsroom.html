@@ -15,24 +15,7 @@
     <div class="cursor-field" id="cursorField"></div>
   </div>
 
-  <header class="site-header">
-    <div class="nav-shell">
-      <a class="brand" href="index.html" aria-label="DNHS Rocketry Club home">
-        <div class="logo"><img src="images/logo.png" alt="DNHS Rocketry Club Logo"></div>
-        DNHS Rocketry Club
-      </a>
-      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
-        <a href="index.html">Home</a>
-        <a href="projects.html">Projects</a>
-        <a href="crew.html">Crew</a>
-        <a class="active" href="newsroom.html">Newsroom</a>
-        <a class="apply-link" href="contact.html">Contact Us</a>
-      </nav>
-    </div>
-  </header>
+  <div id="siteNavMount"></div>
 
   <main class="page-main">
     <section class="page-hero section reveal">
@@ -40,15 +23,15 @@
         <div class="section-copy narrow">
           <p class="eyebrow">Newsroom</p>
           <h1>Team updates.</h1>
-          <p class="page-lede">A place for launch recaps, test reports, build milestones, sponsor news, and competition progress.</p>
+          <p class="page-lede">Short updates from the workshop, test field, and competition prep table.</p>
         </div>
       </div>
     </section>
 
     <section class="section newsroom-list reveal">
-      <article><time>May 2026</time><h2>Updates incoming</h2><p>Stay Tuned</p></article>
-      <article><time>April 2026</time><h2>Updates incoming</h2><p>Stay Tuned</p></article>
-      <article><time>March 2026</time><h2>Updates incoming</h2><p>Stay Tuned</p></article>
+      <article><time>May 2026</time><h2>Launch recap posting soon</h2><p>We are wrapping photos, flight data, and team notes from the latest range day.</p></article>
+      <article><time>April 2026</time><h2>Recovery test report in draft</h2><p>The write-up covers deployment timing tweaks and what changed before the next run.</p></article>
+      <article><time>March 2026</time><h2>Build milestone update coming</h2><p>Airframe assembly is complete and avionics integration notes are being finalized.</p></article>
     </section>
 
     <section class="section newsroom-gallery reveal" aria-label="Programs and team photos">
@@ -58,23 +41,12 @@
       </div>
       <div class="activity-grid">
         <article class="activity-card"><img src="images/team-1.png" alt="Program workshop session"><div><p>Program Workshop</p><span>Design reviews and subsystem planning</span></div></article>
-        <article class="activity-card"><img src="images/team-2.png" alt="Workshop"><div><p>The Shop</p><span>The Room where it all happens</span></div></article>
+        <article class="activity-card"><img src="images/team-2.png" alt="Workshop"><div><p>The Shop</p><span>Where parts turn into flight-ready hardware</span></div></article>
         <article class="activity-card"><img src="images/team-3.png" alt="Competition event"><div><p>Competition</p><span>Range prep, launch, and recovery</span></div></article>
       </div>
     </section>
   </main>
-<footer class="site-footer">
-  <div class="footer-shell">
-    <p class="eyebrow">Made Possible By</p>
-    <div class="footer-sponsors" aria-label="Footer sponsor logos">
-      <img src="images/sponsor-1.png" alt="Sponsor one logo">
-      <img src="images/sponsor-2.png" alt="Sponsor two logo">
-      <img src="images/sponsor-1.png" alt="Sponsor three logo">
-      <img src="images/sponsor-2.png" alt="Sponsor four logo">
-    </div>
-    <p class="footer-meta">DNHS Rocketry Club // Del Norte High School</p>
-  </div>
-</footer>
+  <div id="siteFooterMount"></div>
   <script src="script.js"></script>
 </body>
 </html>

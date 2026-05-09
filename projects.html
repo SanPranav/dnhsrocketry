@@ -15,30 +15,13 @@
     <div class="cursor-field" id="cursorField"></div>
   </div>
 
-  <header class="site-header">
-    <div class="nav-shell">
-      <a class="brand" href="index.html" aria-label="DNHS Rocketry Club home">
-        <div class="logo"><img src="images/logo.png" alt="DNHS Rocketry Club Logo"></div>
-        DNHS Rocketry Club
-      </a>
-      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
-        <a href="index.html">Home</a>
-        <a class="active" href="projects.html">Projects</a>
-        <a href="crew.html">Crew</a>
-        <a href="newsroom.html">Newsroom</a>
-        <a class="apply-link" href="contact.html">Contact Us</a>
-      </nav>
-    </div>
-  </header>
+  <div id="siteNavMount"></div>
 
   <main class="page-main technical-page">
     <section class="page-hero section">
       <p class="eyebrow">Engineering Registry</p>
       <h1>Rocket projects.</h1>
-      <p class="page-lede">Structured technical entries for active and historical DNHS flight vehicles.</p>
+      <p class="page-lede">A running log of the rockets we are actively flying and refining.</p>
     </section>
 
     <section class="section technical-list" aria-label="Rocket technical entries">
@@ -65,9 +48,9 @@
 
     <section class="section model-renderer reveal" aria-label="Model renderer">
       <div class="section-copy narrow">
-        <p class="eyebrow">Rendered OpenRocket Model</p>
-        <h2>Auto-rendered ORK preview.</h2>
-        <p class="lede">Upload an ORK/STL/OBJ to preview in the ORK viewer. Use the controls to toggle rotation and adjust speed.</p>
+        <p class="eyebrow">Rendered CAD Model</p>
+        <h2>Live model preview.</h2>
+        <p class="lede">The viewer auto-loads the converted mesh from Assembly 1.x_t. Run <strong>node scripts/convert-assembly-model.js</strong> after CAD updates to keep this preview 1:1.</p>
       </div>
       <div class="model-render-shell">
         <div class="model-controls">
@@ -75,11 +58,11 @@
             <label style="display:flex; gap:8px; align-items:center;"><input id="autoRotateToggle" type="checkbox" checked> Auto-rotate</label>
             <label style="display:flex; gap:8px; align-items:center;">Speed <input id="rotateSpeed" type="range" min="0" max="0.02" step="0.001" value="0.0055"></label>
           </div>
-          <div class="cad-status" id="projectUploadStatus" style="margin-top:12px">Auto-loading model preview</div>
+          <div class="cad-status" id="projectUploadStatus" style="margin-top:12px">Preparing renderer</div>
         </div>
         <div class="model-canvas">
-          <canvas id="projectCadCanvas" width="980" height="620" aria-label="ORK project render"></canvas>
-          <div class="cad-status" id="projectCadStatus">Loading Nats Qual Rocket 1 ORK profile</div>
+          <canvas id="projectCadCanvas" width="980" height="620" aria-label="CAD project render"></canvas>
+          <div class="cad-status" id="projectCadStatus">Loading converted CAD mesh</div>
         </div>
       </div>
     </section>
@@ -99,24 +82,13 @@
         <p id="modalDescription"></p>
         <div class="modal-specs" id="modalSpecs"></div>
         <div class="asset-row">
-          <a id="modalCad" href="assets/openrocket/NATFINALSROCKET.ork" download>OpenRocket CAD</a>
+          <a id="modalCad" href="Assembly 1.x_t" download>Download CAD</a>
           <a id="modalVideo" href="#" target="_blank" rel="noreferrer">Test Flight Video</a>
         </div>
       </div>
     </article>
   </div>
-<footer class="site-footer">
-  <div class="footer-shell">
-    <p class="eyebrow">Made Possible By</p>
-    <div class="footer-sponsors" aria-label="Footer sponsor logos">
-      <img src="images/sponsor-1.png" alt="Sponsor one logo">
-      <img src="images/sponsor-2.png" alt="Sponsor two logo">
-      <img src="images/sponsor-1.png" alt="Sponsor three logo">
-      <img src="images/sponsor-2.png" alt="Sponsor four logo">
-    </div>
-    <p class="footer-meta">DNHS Rocketry Club // Del Norte High School</p>
-  </div>
-</footer>
+  <div id="siteFooterMount"></div>
   <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
   <script src="script.js"></script>
 </body>

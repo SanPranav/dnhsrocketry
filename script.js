@@ -1,3 +1,54 @@
+function renderSharedLayout() {
+  const navMount = document.getElementById("siteNavMount");
+  const footerMount = document.getElementById("siteFooterMount");
+  const page = document.body?.dataset?.page || "";
+
+  const activeClass = (slug) => (page === slug ? " class=\"active\"" : "");
+  const contactClass = page === "contact" ? " class=\"active apply-link\"" : " class=\"apply-link\"";
+
+  if (navMount) {
+    navMount.innerHTML = `
+      <header class="site-header">
+        <div class="nav-shell">
+          <a class="brand" href="index.html" aria-label="DNHS Rocketry Club home">
+            <div class="logo"><img src="images/logo.png" alt="DNHS Rocketry Club Logo"></div>
+            DNHS Rocketry Club
+          </a>
+          <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
+            <a${activeClass("home")} href="index.html">Home</a>
+            <a${activeClass("projects")} href="projects.html">Projects</a>
+            <a${activeClass("crew")} href="crew.html">Crew</a>
+            <a${activeClass("newsroom")} href="newsroom.html">Newsroom</a>
+            <a${contactClass} href="contact.html">Contact Us</a>
+          </nav>
+        </div>
+      </header>
+    `;
+  }
+
+  if (footerMount) {
+    footerMount.innerHTML = `
+      <footer class="site-footer">
+        <div class="footer-shell">
+          <p class="eyebrow">Made Possible By</p>
+          <div class="footer-sponsors" aria-label="Footer sponsor logos">
+            <img src="images/sponsor-1.png" alt="Sponsor one logo">
+            <img src="images/sponsor-2.png" alt="Sponsor two logo">
+            <img src="images/sponsor-1.png" alt="Sponsor three logo">
+            <img src="images/sponsor-2.png" alt="Sponsor four logo">
+          </div>
+          <p class="footer-meta">DNHS Rocketry Club // Del Norte High School</p>
+        </div>
+      </footer>
+    `;
+  }
+}
+
+renderSharedLayout();
+
 const starfield = document.getElementById("starfield");
 const cursorField = document.getElementById("cursorField");
 const menuToggle = document.getElementById("menuToggle");
@@ -28,9 +79,11 @@ const projectData = {
     kicker: "2026 Nationals Qual Rocket",
     title: "Zenith",
     image: "images/rocket-1.png",
-    description: "Someone Write A description here",
-    specs: ["Mission: National TARC Level 1", "Altitude: 750 ft", "Motor: Solid composite", "Airframe: Fiberglass test article", "Recovery: Drogue + main", "Status: Ground review"],
-    cad: "Assembly 1.x_t",
+    description: "Zenith is our current nationals-qualifier build focused on stable flight and consistent recovery. The team is tuning mass distribution, fin alignment, and deployment timing before final field validation.",
+    specs: ["Mission: National TARC Qualifier", "Target Altitude: 750 ft", "Motor: Solid composite", "Airframe: Fiberglass test article", "Recovery: Dual deployment", "Status: Pre-flight validation"],
+    cad: "assets/models/Assembly_1.obj",
+    cadSource: "Assembly 1.x_t",
+    cadDownload: "Assembly 1.x_t",
     video: "videos/launch.mp4"
   }
   // additional projects can be added here following the same structure
@@ -44,6 +97,7 @@ let activeProjectRender = "natsqual";
 const projectCadCache = {};
 let projectCadProjected = [];
 let projectSelection = { vertex: null, edges: new Set() };
+let launchLastSeekAt = 0;
 
 function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -285,6 +339,8 @@ function extractOrkXmlFromBuffer(buffer) {
 
 async function loadProjectCad(key) {
   if (!projectData[key]) return;
+  const data = projectData[key];
+  const uploadStatus = document.getElementById("projectUploadStatus");
 
   activeProjectRender = key;
   if (projectCadButtons.length) {
@@ -295,16 +351,19 @@ async function loadProjectCad(key) {
 
   if (projectCadCache[key]) {
     projectCadModel = projectCadCache[key];
-    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} ORK render active`;
+    if (uploadStatus) uploadStatus.textContent = "Renderer ready";
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} CAD render active`;
     return;
   }
 
   try {
-    if (projectCadStatus) projectCadStatus.textContent = `Loading ${projectData[key].cad}`;
-    const url = encodeURI(projectData[key].cad);
+    if (uploadStatus) uploadStatus.textContent = "Loading CAD model";
+    if (projectCadStatus) projectCadStatus.textContent = `Loading ${data.cad}`;
+    const url = encodeURI(data.cad);
     const response = await fetch(url);
+    if (!response.ok) throw new Error(`Primary CAD load failed: ${response.status}`);
     const buffer = await response.arrayBuffer();
-    const name = projectData[key].cad;
+    const name = data.cad;
     // Try ORK extraction first (handles zipped ORK or XML). If not, try known formats.
     const xml = extractOrkXmlFromBuffer(buffer);
     let model;
@@ -320,6 +379,10 @@ async function loadProjectCad(key) {
       } else if (ext === 'ork') {
         // fallback: try reading as text
         model = parseOrkXmlToModel(new TextDecoder().decode(buffer), key);
+      } else if (ext === 'x_t') {
+        // Parasolid x_t isn't directly renderable in-browser; keep a stable fallback preview.
+        model = profileToModel(getFallbackOrkProfile(key));
+        if (projectCadStatus) projectCadStatus.textContent = `${name} loaded (parasolid preview fallback)`;
       } else {
         // Unsupported: show fallback model but indicate file loaded
         model = profileToModel(getFallbackOrkProfile(key));
@@ -328,10 +391,27 @@ async function loadProjectCad(key) {
     }
     projectCadCache[key] = model;
     projectCadModel = model;
-    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} ORK render active`;
+    if (uploadStatus) uploadStatus.textContent = "Renderer ready";
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} CAD render active`;
   } catch (error) {
-    projectCadModel = profileToModel(getFallbackOrkProfile(key));
-    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} fallback render active`;
+    try {
+      if (!data.cadSource) throw error;
+      if (projectCadStatus) projectCadStatus.textContent = `Converted mesh not found, loading ${data.cadSource}`;
+      const sourceUrl = encodeURI(data.cadSource);
+      const sourceResponse = await fetch(sourceUrl);
+      if (!sourceResponse.ok) throw error;
+      await sourceResponse.arrayBuffer();
+      projectCadModel = profileToModel(getFallbackOrkProfile(key));
+      projectCadCache[key] = projectCadModel;
+      if (uploadStatus) uploadStatus.textContent = "Converted mesh missing";
+      if (projectCadStatus) {
+        projectCadStatus.textContent = `${data.cadSource} loaded (preview fallback). Run: node scripts/convert-assembly-model.js`;
+      }
+    } catch (fallbackError) {
+      projectCadModel = profileToModel(getFallbackOrkProfile(key));
+      if (uploadStatus) uploadStatus.textContent = "Using fallback render";
+      if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} fallback render active`;
+    }
   }
 }
 
@@ -471,40 +551,41 @@ function updateLaunchFilm() {
     const rangeEnd = clamp(Number.isFinite(parsedRangeEnd) ? parsedRangeEnd : duration, rangeStart, duration);
     const target = rangeStart + (rangeEnd - rangeStart) * progress;
     try {
-      // Avoid seeking while the player is already seeking
       if (launchVideo.seeking) return;
-      // Pause while scrubbing to avoid playback conflicts
-      try { launchVideo.pause(); } catch (e) { }
-      // Only perform a seek when difference is noticeable
-      if (Math.abs((launchVideo.currentTime || 0) - target) > 0.03) {
-        if (typeof launchVideo.fastSeek === 'function') {
-          try { launchVideo.fastSeek(target); } catch (e) { launchVideo.currentTime = target; }
-        } else {
-          launchVideo.currentTime = target;
-        }
+      const now = performance.now();
+      if (now - launchLastSeekAt < 20) return;
+
+      const current = launchVideo.currentTime || 0;
+      const delta = target - current;
+      if (Math.abs(delta) < 0.012) return;
+
+      const smoothedTarget = current + delta * 0.48;
+      if (typeof launchVideo.fastSeek === "function" && Math.abs(delta) > 0.16) {
+        try { launchVideo.fastSeek(smoothedTarget); } catch (e) { launchVideo.currentTime = smoothedTarget; }
+      } else {
+        launchVideo.currentTime = smoothedTarget;
       }
-      // Keep it silent and non-interactive.
+
       launchVideo.muted = true;
       launchVideo.controls = false;
-      if (progress <= 0.001 || progress >= 0.999) {
-        // Stay paused at ends so it doesn't continue decoding frames
-        try { launchVideo.pause(); } catch (e) { }
-      }
+      launchLastSeekAt = now;
     } catch (e) { /* ignore seek errors */ }
   }
 }
 
 // Ensure we update scrub after metadata is available
 if (launchVideo) {
-  // keep launch film muted and controlled by scroll position
+  // Keep launch film muted and controlled by scroll position.
   try { launchVideo.muted = true; } catch (e) { /* ignore */ }
   try { launchVideo.controls = false; } catch (e) { /* ignore */ }
+  launchVideo.preload = "auto";
+  launchVideo.playsInline = true;
   if (Number.isFinite(launchVideo.duration) && launchVideo.duration > 0) {
     updateLaunchFilm();
-    try { launchVideo.play(); } catch (e) { /* ignore */ }
+    try { launchVideo.pause(); } catch (e) { /* ignore */ }
   } else {
     launchVideo.addEventListener("loadedmetadata", () => {
-      try { updateLaunchFilm(); launchVideo.play(); } catch (e) { /* ignore */ }
+      try { updateLaunchFilm(); launchVideo.pause(); } catch (e) { /* ignore */ }
     }, { once: true });
   }
 }
@@ -612,7 +693,7 @@ function openProjectModal(key) {
   document.getElementById("modalDescription").textContent = data.description;
   document.getElementById("modalImage").src = data.image;
   document.getElementById("modalImage").alt = `${data.title} project image`;
-  document.getElementById("modalCad").href = data.cad;
+  document.getElementById("modalCad").href = data.cadDownload || data.cadSource || data.cad;
   document.getElementById("modalVideo").href = data.video;
 
   // Inline modal video player (if present) — prefer inline playback when available
@@ -738,7 +819,9 @@ if (projectCadButtons.length) {
       loadProjectCad(button.dataset.renderProject);
     });
   });
+}
 
+if (projectCadCanvas) {
   loadProjectCad(activeProjectRender);
 }
 
