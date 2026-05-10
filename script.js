@@ -6,6 +6,17 @@ function renderSharedLayout() {
   const activeClass = (slug) => (page === slug ? " class=\"active\"" : "");
   const contactClass = page === "contact" ? " class=\"active apply-link\"" : " class=\"apply-link\"";
 
+  if (!document.getElementById("pageCometLayer")) {
+    document.body.insertAdjacentHTML("afterbegin", `
+      <div class="page-comet-layer" id="pageCometLayer" aria-hidden="true">
+        <div class="page-comet" style="--lane: 22; --speed: 118; --delay: 0; --tilt: -12deg; --size: 18px;"></div>
+        <div class="page-comet" style="--lane: 41; --speed: 136; --delay: 36; --tilt: 10deg; --size: 15px;"></div>
+        <div class="page-comet" style="--lane: 63; --speed: 124; --delay: 78; --tilt: -8deg; --size: 17px;"></div>
+        <div class="page-comet" style="--lane: 79; --speed: 148; --delay: 112; --tilt: 7deg; --size: 14px;"></div>
+      </div>
+    `);
+  }
+
   if (navMount) {
     navMount.innerHTML = `
       <header class="site-header">
@@ -47,6 +58,93 @@ function renderSharedLayout() {
   }
 }
 
+function setupProjectScrubUI() {
+  const slider = document.getElementById("projectScrubSlider");
+  if (!slider || !projectViewerState) return;
+  const controls = projectViewerState.controls;
+  if (!controls) return;
+
+  // normalize slider to [0,1] representing full 360° of theta
+  slider.min = 0; slider.max = 1; slider.step = 0.001;
+  // Support sliders that use degrees (0-360) or normalized 0-1 values.
+  const thetaToValue = (theta) => {
+    const deg = ((((theta % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) * 180) / Math.PI;
+    return deg; // degrees
+  };
+  const valueToTheta = (v) => {
+    const num = parseFloat(v) || 0;
+    return (num * Math.PI) / 180; // degrees -> radians
+  };
+
+  // initialize
+  slider.value = thetaToValue(controls.theta || 0);
+
+  const scrubValueDisplay = document.getElementById("projectScrubValue");
+  slider.addEventListener("input", () => {
+    controls.theta = valueToTheta(slider.value);
+    if (scrubValueDisplay) scrubValueDisplay.textContent = `${Math.round(parseFloat(slider.value) || 0)}°`;
+    // also rotate the model group so camera-based and object-based rotations stay visually in sync
+    if (projectViewerState.group) projectViewerState.group.rotation.y = controls.theta;
+    controls.needsUpdate = true;
+  });
+
+  // keyboard left/right to rotate
+  const keyHandler = (e) => {
+    if (!projectViewerState.controls) return;
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      projectViewerState.controls.theta += (e.key === "ArrowLeft" ? -1 : 1) * 0.04;
+      projectViewerState.controls.needsUpdate = true;
+      slider.value = thetaToValue(projectViewerState.controls.theta);
+      e.preventDefault();
+    }
+  };
+  window.addEventListener("keydown", keyHandler);
+
+  // sync slider to manual drags
+  let rafId = null;
+  const sync = () => {
+    if (!projectViewerState.controls) return;
+    const v = Math.round(thetaToValue(projectViewerState.controls.theta));
+    if (Math.abs(parseFloat(slider.value) - v) > 0.5) slider.value = v;
+    if (scrubValueDisplay) scrubValueDisplay.textContent = `${v}°`;
+    // mirror camera azimuth to model Y rotation for consistent visual behaviour
+    if (projectViewerState.group) projectViewerState.group.rotation.y = projectViewerState.controls.theta;
+    rafId = requestAnimationFrame(sync);
+  };
+  sync();
+
+  // cleanup if viewer is destroyed
+  const cleanup = () => {
+    window.removeEventListener("keydown", keyHandler);
+    if (rafId) cancelAnimationFrame(rafId);
+  };
+  // Reset view button
+  const resetBtn = document.getElementById("resetViewBtn");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      if (!projectViewerState.controls) return;
+      projectViewerState.controls.theta = Math.PI * 0.32;
+      projectViewerState.controls.phi = Math.PI * 0.38;
+      projectViewerState.controls.radius = Math.max(projectViewerState.controls.radius || 4, 2.5);
+      projectViewerState.controls.needsUpdate = true;
+      // reset group rotations and sliders
+      if (projectViewerState.group) projectViewerState.group.rotation.set(0, projectViewerState.controls.theta, 0);
+      const rotX = document.getElementById("rotX");
+      const rotY = document.getElementById("rotY");
+      const rotZ = document.getElementById("rotZ");
+      if (rotX) rotX.value = 0;
+      if (rotY) rotY.value = Math.round((projectViewerState.controls.theta * 180 / Math.PI));
+      if (rotZ) rotZ.value = 0;
+      const scrubValueDisplay = document.getElementById("projectScrubValue");
+      const sliderEl = document.getElementById("projectScrubSlider");
+      if (sliderEl) sliderEl.value = Math.round(projectViewerState.controls.theta * 180 / Math.PI);
+      if (scrubValueDisplay) scrubValueDisplay.textContent = `${Math.round(projectViewerState.controls.theta * 180 / Math.PI)}°`;
+    });
+  }
+  // store for potential teardown
+  projectViewerState._scrubCleanup = cleanup;
+}
+
 renderSharedLayout();
 
 const starfield = document.getElementById("starfield");
@@ -56,6 +154,15 @@ const navLinks = document.getElementById("navLinks");
 const launchScroll = document.querySelector(".launch-scroll");
 const launchSticky = document.querySelector(".launch-sticky");
 const launchVideo = document.getElementById("launchVideo");
+const launchFilmFrame = document.getElementById("launchFilmFrame");
+const launchFilmFrames = Array.from({ length: 24 }, (_, index) => `images/launch-film/frame-${String(index + 1).padStart(2, "0")}.jpg`);
+const motionLab = document.querySelector(".motion-lab");
+const motionScene = document.querySelector(".motion-scene");
+const motionRockets = document.querySelectorAll(".motion-rocket");
+const motionComets = document.querySelectorAll(".motion-comet");
+const motionStreaks = document.querySelectorAll(".motion-streak");
+const pageCometLayer = document.getElementById("pageCometLayer");
+const pageComets = document.querySelectorAll(".page-comet");
 const newsroomGallery = document.querySelector("[data-newsroom-gallery]");
 const newsroomGalleryImage = document.getElementById("newsroomGalleryImage");
 const newsroomGalleryTitle = document.getElementById("newsroomGalleryTitle");
@@ -65,14 +172,13 @@ const newsroomGalleryPrev = document.querySelector("[data-gallery-prev]");
 const newsroomGalleryNext = document.querySelector("[data-gallery-next]");
 const newsroomGalleryFeed = document.querySelector("[data-gallery-feed]");
 const newsroomGallerySentinel = document.querySelector("[data-gallery-sentinel]");
-const projectModal = document.getElementById("projectModal");
 const reveals = document.querySelectorAll(".reveal");
 const spaceScene = document.querySelector(".space-scene");
 const heroMedia = document.querySelector(".hero-media");
 const cadCanvas = document.getElementById("cadCanvas");
 const cadInput = document.getElementById("cadInput");
 const cadStatus = document.getElementById("cadStatus");
-const projectCadCanvas = document.getElementById("projectCadCanvas");
+const projectCadViewer = document.getElementById("projectCadViewer");
 const projectCadStatus = document.getElementById("projectCadStatus");
 const projectCadButtons = document.querySelectorAll("[data-render-project]");
 
@@ -91,20 +197,30 @@ const projectData = {
     description: "Zenith is our current nationals-qualifier build focused on stable flight and consistent recovery. The team is tuning mass distribution, fin alignment, and deployment timing before final field validation.",
     specs: ["Mission: National TARC Qualifier", "Target Altitude: 750 ft", "Motor: Solid composite", "Airframe: Fiberglass test article", "Recovery: Dual deployment", "Status: Pre-flight validation"],
     cad: "assets/models/Assembly_1.obj",
-    cadSource: "assets/Assembly1.x_t",
-    cadDownload: "assets/Assembly1.x_t",
+    cadSource: "assets/models/Assembly_1.obj",
+    cadDownload: "assets/models/Assembly_1.obj",
     video: "videos/launch.mp4"
   }
   // additional projects can be added here following the same structure
 };
 
+const projectViewerState = {
+  ready: false,
+  scene: null,
+  camera: null,
+  renderer: null,
+  controls: null,
+  group: null,
+  currentUrl: null,
+  resizeObserver: null,
+  autoRotate: false,
+  rotateSpeed: 0,
+  frameId: 0
+};
+
 let cadModel = createPlaceholderModel();
 let cadRotation = 0;
-let projectCadModel = createPlaceholderModel();
-let projectCadRotation = 0;
 let activeProjectRender = "natsqual";
-const projectCadCache = {};
-let projectCadProjected = [];
 let projectSelection = { vertex: null, edges: new Set() };
 let launchLastSeekAt = 0;
 let newsroomGalleryIndex = 0;
@@ -140,6 +256,31 @@ const newsroomGalleryFeedData = [
   { image: "images/team-2.png", title: "Finishing Pass", caption: "Cleanup, measurement, and a final look at the details." },
   { image: "images/team-3.png", title: "Range Prep", caption: "Everything staged, labeled, and ready for the next launch." }
 ];
+
+function updateNewsroomMonthlyStats() {
+  const statsRoot = document.querySelector(".newsroom-hero-stats");
+  if (!statsRoot) return;
+
+  const reportCount = newsroomGalleryFeedData.length;
+  const featuredCount = newsroomGalleryData.length;
+  const queuedCount = Math.max(0, Math.ceil(reportCount / 3) - 1);
+
+  statsRoot.replaceChildren(
+    createNewsroomStat(String(reportCount), "reports this month"),
+    createNewsroomStat(String(featuredCount), "featured sessions"),
+    createNewsroomStat(String(queuedCount), "launch recaps queued")
+  );
+}
+
+function createNewsroomStat(value, label) {
+  const article = document.createElement("article");
+  const strong = document.createElement("strong");
+  strong.textContent = value;
+  const span = document.createElement("span");
+  span.textContent = label;
+  article.append(strong, span);
+  return article;
+}
 
 function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -220,12 +361,84 @@ function createGalleryCard(item, index) {
   return card;
 }
 
+function parseMtl(text) {
+  const materials = new Map();
+  let current = null;
+
+  text.split(/\r?\n/).forEach((line) => {
+    const parts = line.trim().split(/\s+/);
+    if (!parts.length || !parts[0]) return;
+
+    if (parts[0] === "newmtl" && parts[1]) {
+      current = { name: parts.slice(1).join(" "), color: [0.8, 0.8, 0.8], opacity: 1 };
+      materials.set(current.name, current);
+      return;
+    }
+
+    if (!current) return;
+
+    if (parts[0] === "Kd" && parts.length >= 4) {
+      current.color = parts.slice(1, 4).map((value) => clamp(Number(value), 0, 1));
+    } else if (parts[0] === "d" && parts[1] !== undefined) {
+      current.opacity = clamp(Number(parts[1]), 0, 1);
+    } else if (parts[0] === "Tr" && parts[1] !== undefined) {
+      current.opacity = 1 - clamp(Number(parts[1]), 0, 1);
+    }
+  });
+
+  return materials;
+}
+
+function createObjPart(name = "", material = "") {
+  return { name, material, faces: [], edges: [] };
+}
+
+function fitCrewNames() {
+  const crewCards = document.querySelectorAll(".crew-card");
+  if (!crewCards.length) return;
+
+  crewCards.forEach((card) => {
+    const name = card.querySelector("h2");
+    if (!name) return;
+
+    name.style.fontSize = "";
+    name.style.lineHeight = "";
+
+    const maxWidth = Math.max(0, card.clientWidth - 48);
+    if (!maxWidth) return;
+
+    const minSize = 9;
+    const textLength = Math.max(10, (name.textContent || "").trim().length);
+    let size = Math.min(22, Math.max(10, maxWidth / textLength * 1.55));
+    name.style.fontSize = `${size}px`;
+
+    while (name.scrollWidth > maxWidth && size > minSize) {
+      size -= 0.5;
+      name.style.fontSize = `${size}px`;
+    }
+  });
+}
+
 let newsroomGalleryFeedIndex = 0;
 const newsroomGalleryFeedBatchSize = 4;
 
 function appendNewsroomGalleryBatch() {
   if (!newsroomGalleryFeed) return;
-  const nextItems = newsroomGalleryFeedData.slice(newsroomGalleryFeedIndex, newsroomGalleryFeedIndex + newsroomGalleryFeedBatchSize);
+  // Pull a batch from the feed data; if we run out, generate more by cycling base images
+  let nextItems = newsroomGalleryFeedData.slice(newsroomGalleryFeedIndex, newsroomGalleryFeedIndex + newsroomGalleryFeedBatchSize);
+  if (!nextItems.length) {
+    // generate a small batch by cycling existing team images so the feed never fully ends
+    const base = [
+      { image: 'images/team-1.png', title: 'Workshop', caption: 'Behind the bench.' },
+      { image: 'images/team-2.png', title: 'Build Table', caption: 'Parts and tools.' },
+      { image: 'images/team-3.png', title: 'Range Day', caption: 'Launch prep.' }
+    ];
+    nextItems = new Array(newsroomGalleryFeedBatchSize).fill(0).map((_, i) => {
+      const sample = base[(newsroomGalleryFeedIndex + i) % base.length];
+      return { image: sample.image, title: `${sample.title} ${Math.floor(newsroomGalleryFeedIndex / base.length) + 1}`, caption: sample.caption };
+    });
+  }
+
   nextItems.forEach((item, index) => {
     newsroomGalleryFeed.appendChild(createGalleryCard(item, newsroomGalleryFeedIndex + index));
   });
@@ -247,25 +460,55 @@ function parseObj(text) {
   const points = [];
   const edges = new Set();
   const faces = [];
+  const parts = [];
+  let currentPart = createObjPart();
+
+  const flushPart = () => {
+    if (currentPart && (currentPart.faces.length || currentPart.edges.length)) {
+      parts.push(currentPart);
+    }
+    currentPart = createObjPart(currentPart?.name || "", currentPart?.material || "");
+  };
 
   text.split(/\r?\n/).forEach((line) => {
     const parts = line.trim().split(/\s+/);
+    if (!parts.length || !parts[0]) return;
+
+    if (parts[0] === "o" || parts[0] === "g") {
+      flushPart();
+      currentPart.name = parts.slice(1).join(" ");
+      return;
+    }
+
+    if (parts[0] === "usemtl") {
+      flushPart();
+      currentPart.material = parts.slice(1).join(" ");
+      return;
+    }
+
     if (parts[0] === "v" && parts.length >= 4) {
       points.push(parts.slice(1, 4).map(Number));
     }
+
     if (parts[0] === "f" && parts.length >= 4) {
       const ids = parts.slice(1).map((part) => Number(part.split("/")[0]) - 1).filter((id) => Number.isFinite(id));
       for (let i = 1; i < ids.length - 1; i += 1) {
-        faces.push([ids[0], ids[i], ids[i + 1]]);
+        const tri = [ids[0], ids[i], ids[i + 1]];
+        faces.push(tri);
+        currentPart.faces.push(tri);
       }
       ids.forEach((id, index) => {
         const next = ids[(index + 1) % ids.length];
-        edges.add([Math.min(id, next), Math.max(id, next)].join(":"));
+        const edge = [Math.min(id, next), Math.max(id, next)].join(":");
+        edges.add(edge);
+        currentPart.edges.push([Math.min(id, next), Math.max(id, next)]);
       });
     }
   });
 
-  return normalizeModel({ points, edges: [...edges].map((edge) => edge.split(":").map(Number)), faces });
+  flushPart();
+
+  return normalizeModel({ points, edges: [...edges].map((edge) => edge.split(":").map(Number)), faces, parts });
 }
 
 function parseStl(buffer) {
@@ -338,7 +581,13 @@ function normalizeModel(model) {
   return {
     points: points.map((point) => point.map((value) => value / (max || 1))),
     edges: (model.edges || []).slice(0, 9000),
-    faces: (model.faces || []).slice(0, 6000)
+    faces: (model.faces || []).slice(0, 6000),
+    parts: (model.parts || []).map((part) => ({
+      name: part.name,
+      material: part.material,
+      faces: (part.faces || []).slice(0, 6000),
+      edges: (part.edges || []).slice(0, 9000)
+    }))
   };
 }
 
@@ -543,69 +792,28 @@ async function loadProjectCad(key) {
     });
   }
 
-  if (projectCadCache[key]) {
-    projectCadModel = projectCadCache[key];
-    if (uploadStatus) uploadStatus.textContent = "Renderer ready";
-    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} CAD render active`;
+  if (!projectViewerState.ready && !initProjectViewer()) {
+    if (uploadStatus) uploadStatus.textContent = "Viewer unavailable";
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} viewer failed to initialize`;
+    return;
+  }
+
+  if (projectViewerState.currentUrl === data.cad) {
+    if (uploadStatus) uploadStatus.textContent = "Viewer ready";
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} viewer active`;
     return;
   }
 
   try {
-    if (uploadStatus) uploadStatus.textContent = "Loading CAD model";
+    if (uploadStatus) uploadStatus.textContent = "Loading CAD source";
     if (projectCadStatus) projectCadStatus.textContent = `Loading ${data.cad}`;
-    const url = encodeURI(data.cad);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Primary CAD load failed: ${response.status}`);
-    const buffer = await response.arrayBuffer();
-    const name = data.cad;
-    // Try ORK extraction first (handles zipped ORK or XML). If not, try known formats.
-    const xml = extractOrkXmlFromBuffer(buffer);
-    let model;
-    if (xml) {
-      model = parseOrkXmlToModel(xml, key);
-    } else {
-      // Attempt to guess format from bytes
-      const ext = (name.split('.').pop() || '').toLowerCase();
-      if (ext === 'obj') {
-        model = parseObj(new TextDecoder().decode(buffer));
-      } else if (ext === 'stl') {
-        model = parseStl(buffer);
-      } else if (ext === 'ork') {
-        // fallback: try reading as text
-        model = parseOrkXmlToModel(new TextDecoder().decode(buffer), key);
-      } else if (ext === 'x_t') {
-        // Parasolid x_t isn't directly renderable in-browser; keep a stable fallback preview.
-        model = profileToModel(getFallbackOrkProfile(key));
-        if (projectCadStatus) projectCadStatus.textContent = `${name} loaded (parasolid preview fallback)`;
-      } else {
-        // Unsupported: show fallback model but indicate file loaded
-        model = profileToModel(getFallbackOrkProfile(key));
-        if (projectCadStatus) projectCadStatus.textContent = `${name} loaded (preview unavailable)`;
-      }
-    }
-    projectCadCache[key] = model;
-    projectCadModel = model;
-    if (uploadStatus) uploadStatus.textContent = "Renderer ready";
-    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} CAD render active`;
+    await projectViewerLoadSource(data.cad);
+    if (uploadStatus) uploadStatus.textContent = "Viewer ready";
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} viewer active`;
   } catch (error) {
-    try {
-      if (!data.cadSource) throw error;
-      if (projectCadStatus) projectCadStatus.textContent = `Converted mesh not found, loading ${data.cadSource}`;
-      const sourceUrl = encodeURI(data.cadSource);
-      const sourceResponse = await fetch(sourceUrl);
-      if (!sourceResponse.ok) throw error;
-      await sourceResponse.arrayBuffer();
-      projectCadModel = profileToModel(getFallbackOrkProfile(key));
-      projectCadCache[key] = projectCadModel;
-      if (uploadStatus) uploadStatus.textContent = "Converted mesh missing";
-      if (projectCadStatus) {
-        projectCadStatus.textContent = `${data.cadSource} loaded (generated preview active)`;
-      }
-    } catch (fallbackError) {
-      projectCadModel = profileToModel(getFallbackOrkProfile(key));
-      if (uploadStatus) uploadStatus.textContent = "Using fallback render";
-      if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} fallback render active`;
-    }
+    if (uploadStatus) uploadStatus.textContent = "Viewer failed to load";
+    if (projectCadStatus) projectCadStatus.textContent = `${projectData[key].title} failed to load`;
+    console.error("Project viewer load failed", error);
   }
 }
 
@@ -652,66 +860,501 @@ function renderCad() {
   cadRotation += 0.006;
 }
 
-function renderProjectCad() {
-  if (!projectCadCanvas) return;
+function initProjectViewer() {
+  if (projectViewerState.ready) return true;
+  if (!projectCadViewer || !window.THREE) return false;
 
-  const ctx = projectCadCanvas.getContext("2d");
-  const rect = projectCadCanvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  if (projectCadCanvas.width !== Math.floor(rect.width * dpr) || projectCadCanvas.height !== Math.floor(rect.height * dpr)) {
-    projectCadCanvas.width = Math.floor(rect.width * dpr);
-    projectCadCanvas.height = Math.floor(rect.height * dpr);
+  const rect = projectCadViewer.getBoundingClientRect();
+  const width = Math.max(1, rect.width || projectCadViewer.clientWidth || 960);
+  const height = Math.max(1, rect.height || projectCadViewer.clientHeight || 420);
+
+  try {
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x05070d);
+
+    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+    camera.position.set(0, 0.8, 4.6);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // Cap device pixel ratio to avoid huge GPU work on high-DPR displays
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    renderer.setPixelRatio(dpr);
+    renderer.setSize(width, height, false);
+    if (renderer.outputColorSpace !== undefined) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+    renderer.domElement.style.touchAction = "none";
+    projectCadViewer.replaceChildren(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 1.7));
+
+    const keyLight = new THREE.DirectionalLight(0x9fd0ff, 2.2);
+    keyLight.position.set(4, 7, 6);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffb37a, 1.1);
+    fillLight.position.set(-4, -2, -5);
+    scene.add(fillLight);
+
+    const controls = createProjectOrbitControls(camera, renderer.domElement, projectCadViewer);
+
+    projectViewerState.ready = true;
+    projectViewerState.scene = scene;
+    projectViewerState.camera = camera;
+    projectViewerState.renderer = renderer;
+    projectViewerState.controls = controls;
+    projectViewerState.group = null;
+
+    // Wire optional scrub UI (range slider / keyboard) if present
+    try { setupProjectScrubUI(); } catch (err) { /* ignore if not defined yet */ }
+
+    const resizeViewer = () => {
+      const nextRect = projectCadViewer.getBoundingClientRect();
+      const nextWidth = Math.max(1, nextRect.width || projectCadViewer.clientWidth || 960);
+      const nextHeight = Math.max(1, nextRect.height || projectCadViewer.clientHeight || 420);
+      camera.aspect = nextWidth / nextHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nextWidth, nextHeight, false);
+    };
+
+    resizeViewer();
+    if (window.ResizeObserver) {
+      projectViewerState.resizeObserver = new ResizeObserver(resizeViewer);
+      projectViewerState.resizeObserver.observe(projectCadViewer);
+    }
+
+    if (!projectViewerState.frameId) {
+      projectViewerState.frameId = requestAnimationFrame(renderProjectViewer);
+    }
+    return true;
+  } catch (error) {
+    projectViewerState.ready = false;
+    projectViewerState.scene = null;
+    projectViewerState.camera = null;
+    projectViewerState.renderer = null;
+    projectViewerState.controls = null;
+    projectViewerState.group = null;
+    return false;
   }
+}
 
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, rect.width, rect.height);
-  const bg = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-  bg.addColorStop(0, "rgba(143,199,255,0.06)");
-  bg.addColorStop(1, "rgba(255,138,36,0.03)");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, rect.width, rect.height);
+async function projectViewerLoadSource(url) {
+  if (!projectViewerState.ready && !initProjectViewer()) throw new Error("three.js viewer unavailable");
+  if (!projectViewerState.ready || !projectViewerState.scene) throw new Error("three.js viewer unavailable");
 
-  const scale = Math.min(rect.width, rect.height) * 0.34;
-  const cx = rect.width / 2;
-  const cy = rect.height / 2;
-  const projected = projectModelPoints(projectCadModel, projectCadRotation, -0.3, scale, cx, cy, 1.82);
-  // store for selection logic
-  projectCadProjected = projected;
-
-  fillProjectedFaces(ctx, projected, projectCadModel.faces, [143, 199, 255]);
-
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(143,199,255,0.72)";
-  ctx.beginPath();
-  projectCadModel.edges.forEach(([a, b]) => {
-    const p1 = projected[a];
-    const p2 = projected[b];
-    if (!p1 || !p2) return;
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p2.x, p2.y);
-  });
-  ctx.stroke();
-
-  // draw selection overlay if present
-  if (projectSelection.edges && projectSelection.edges.size) {
-    ctx.lineWidth = 2.6;
-    ctx.strokeStyle = "rgba(255,200,80,0.95)";
-    ctx.beginPath();
-    projectSelection.edges.forEach((key) => {
-      const [ia, ib] = key.split(':').map(Number);
-      const p1 = projected[ia];
-      const p2 = projected[ib];
-      if (!p1 || !p2) return;
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
+  if (projectViewerState.group) {
+    projectViewerState.scene.remove(projectViewerState.group);
+    projectViewerState.group.traverse((child) => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) child.material.forEach((material) => material.dispose());
+        else child.material.dispose();
+      }
     });
-    ctx.stroke();
-    ctx.lineWidth = 1;
   }
 
-  ctx.strokeStyle = "rgba(255,255,255,0.13)";
-  ctx.strokeRect(16, 16, rect.width - 32, rect.height - 32);
-  if (projectAutoRotate) projectCadRotation += projectRotateSpeed;
+  const ext = (url.split(".").pop() || "").toLowerCase();
+  let model = null;
+  let materialMap = new Map();
+
+  if (ext === "obj") {
+    const objText = await (await fetch(encodeURI(url))).text();
+    const baseUrl = url.slice(0, url.lastIndexOf("/") + 1);
+    const mtllibMatch = objText.match(/^mtllib\s+(.+)$/mi);
+    if (mtllibMatch && mtllibMatch[1]) {
+      const mtlPath = mtllibMatch[1].trim();
+      try {
+        const mtlText = await (await fetch(encodeURI(`${baseUrl}${mtlPath}`))).text();
+        materialMap = parseMtl(mtlText);
+      } catch (error) {
+        console.warn("MTL load failed", error);
+      }
+    }
+    model = parseObj(objText);
+  } else if (ext === "ork" || ext === "xml") {
+    const buffer = await (await fetch(encodeURI(url))).arrayBuffer();
+    const orkXml = extractOrkXmlFromBuffer(buffer);
+    if (!orkXml) throw new Error(`Unable to read OpenRocket source: ${url}`);
+    model = parseOrkXmlToModel(orkXml, url);
+  } else if (ext === "stl") {
+    const buffer = await (await fetch(encodeURI(url))).arrayBuffer();
+    model = parseStl(buffer);
+  } else {
+    throw new Error(`Unsupported model type: ${ext || "unknown"}`);
+  }
+
+  const group = buildProjectViewerGroup(model, materialMap);
+  projectViewerState.scene.add(group);
+  projectViewerState.group = group;
+  projectViewerState.currentUrl = url;
+  frameProjectViewerToGroup(group);
+  // populate UI controls for the loaded model
+  try { setupModelControlsForGroup(group); } catch (e) { /* ignore */ }
+}
+
+function renderProjectViewer() {
+  const { renderer, scene, camera, group, controls } = projectViewerState;
+  if (!renderer || !scene || !camera) return;
+
+  const now = performance.now();
+  const minFrameMs = 1000 / 30; // target 30 FPS when idle
+  if (!projectViewerState._lastRenderAt) projectViewerState._lastRenderAt = 0;
+
+  const needs = controls ? controls.needsUpdate : true;
+  if (needs || now - projectViewerState._lastRenderAt >= minFrameMs) {
+    if (controls) {
+      updateProjectOrbitControls(controls, camera);
+      controls.needsUpdate = false;
+    }
+    renderer.render(scene, camera);
+    projectViewerState._lastRenderAt = now;
+  }
+
+  projectViewerState.frameId = requestAnimationFrame(renderProjectViewer);
+}
+
+function createProjectOrbitControls(camera, domElement, container) {
+  const state = {
+    target: new THREE.Vector3(0, 0, 0),
+    theta: Math.PI * 0.35,
+    phi: Math.PI * 0.36,
+    radius: 5.6,
+    minRadius: 0.9,
+    maxRadius: 40,
+    minPhi: 0.12,
+    maxPhi: Math.PI - 0.12,
+    rotateSpeed: 0.006,
+    panSpeed: 0.002,
+    zoomSpeed: 0.0012,
+    dragging: false,
+    panning: false,
+    lastX: 0,
+    lastY: 0,
+    pointers: new Map(),
+    needsUpdate: true
+  };
+
+  const getViewport = () => {
+    const rect = container.getBoundingClientRect();
+    return {
+      width: Math.max(1, rect.width || container.clientWidth || 1),
+      height: Math.max(1, rect.height || container.clientHeight || 1)
+    };
+  };
+
+  const setPointerState = (event, active) => {
+    if (active) state.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, button: event.button, shiftKey: event.shiftKey });
+    else state.pointers.delete(event.pointerId);
+  };
+
+  const startInteraction = (event) => {
+    container.setPointerCapture?.(event.pointerId);
+    setPointerState(event, true);
+    state.dragging = true;
+    state.panning = event.button === 1 || event.button === 2 || event.shiftKey;
+    state.lastX = event.clientX;
+    state.lastY = event.clientY;
+    state.needsUpdate = true;
+  };
+
+  const moveInteraction = (event) => {
+    if (!state.dragging) return;
+    const dx = event.clientX - state.lastX;
+    const dy = event.clientY - state.lastY;
+    state.lastX = event.clientX;
+    state.lastY = event.clientY;
+
+    if (state.panning) {
+      const forward = new THREE.Vector3().subVectors(state.target, camera.position).normalize();
+      const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+      const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+      const { width, height } = getViewport();
+      const panScale = (state.radius / Math.max(1, Math.min(width, height))) * state.panSpeed * 220;
+      state.target.addScaledVector(right, -dx * panScale);
+      state.target.addScaledVector(up, dy * panScale);
+    } else {
+      state.theta -= dx * state.rotateSpeed;
+      state.phi -= dy * state.rotateSpeed;
+    }
+
+    state.needsUpdate = true;
+  };
+
+  const endInteraction = (event) => {
+    setPointerState(event, false);
+    state.dragging = false;
+    state.panning = false;
+    state.needsUpdate = true;
+    try { container.releasePointerCapture?.(event.pointerId); } catch (error) { /* ignore */ }
+  };
+
+  domElement.addEventListener("pointerdown", startInteraction);
+  domElement.addEventListener("pointermove", moveInteraction);
+  domElement.addEventListener("pointerup", endInteraction);
+  domElement.addEventListener("pointercancel", endInteraction);
+  domElement.addEventListener("pointerleave", () => { state.dragging = false; state.panning = false; });
+  domElement.addEventListener("contextmenu", (event) => event.preventDefault());
+  domElement.addEventListener("wheel", (event) => {
+    event.preventDefault();
+    const zoomFactor = Math.exp(event.deltaY * state.zoomSpeed);
+    state.radius = clamp(state.radius * zoomFactor, state.minRadius, state.maxRadius);
+    state.needsUpdate = true;
+  }, { passive: false });
+
+  return state;
+}
+
+function updateProjectOrbitControls(state, camera) {
+  state.phi = clamp(state.phi, state.minPhi, state.maxPhi);
+  state.radius = clamp(state.radius, state.minRadius, state.maxRadius);
+
+  const sinPhi = Math.sin(state.phi);
+  const cosPhi = Math.cos(state.phi);
+  const x = state.target.x + state.radius * sinPhi * Math.cos(state.theta);
+  const y = state.target.y + state.radius * cosPhi;
+  const z = state.target.z + state.radius * sinPhi * Math.sin(state.theta);
+
+  camera.position.set(x, y, z);
+  camera.lookAt(state.target);
+}
+
+function frameProjectViewerToGroup(group) {
+  if (!projectViewerState.camera || !projectViewerState.controls || !group) return;
+
+  const box = new THREE.Box3().setFromObject(group);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+
+  const maxSize = Math.max(size.x, size.y, size.z) || 1;
+  const camera = projectViewerState.camera;
+  const controls = projectViewerState.controls;
+  const fitDistance = maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5))) * 1.3;
+
+  controls.target.copy(center);
+  controls.radius = Math.max(fitDistance, maxSize * 1.25, 2.5);
+  controls.minRadius = Math.max(0.7, controls.radius * 0.18);
+  controls.maxRadius = Math.max(controls.radius * 8, controls.radius + 8);
+  camera.near = Math.max(0.01, controls.radius / 200);
+  camera.far = Math.max(200, controls.radius * 20);
+  camera.updateProjectionMatrix();
+  controls.theta = Math.PI * 0.32;
+  controls.phi = Math.PI * 0.38;
+  updateProjectOrbitControls(controls, camera);
+}
+
+function buildProjectViewerGroup(model, materialMap = new Map()) {
+  const group = new THREE.Group();
+  const defaultColor = new THREE.Color(0xdde9ff);
+  const lineBaseColor = new THREE.Color(0x9fd0ff);
+
+  const makeMaterial = (entry, index) => {
+    const color = new THREE.Color();
+    if (entry?.color) {
+      color.setRGB(entry.color[0], entry.color[1], entry.color[2]);
+    } else {
+      color.copy(defaultColor).offsetHSL(((index % 7) - 3) * 0.02, 0, 0);
+    }
+    return new THREE.MeshStandardMaterial({
+      color,
+      metalness: 0.12,
+      roughness: 0.38,
+      side: THREE.DoubleSide,
+      transparent: entry?.opacity !== undefined && entry.opacity < 1,
+      opacity: entry?.opacity !== undefined ? entry.opacity : 1
+    });
+  };
+
+  if (model.parts && model.parts.length) {
+    model.parts.forEach((part, index) => {
+      if (!part.faces.length) return;
+
+      const materialEntry = part.material ? materialMap.get(part.material) : null;
+      const material = makeMaterial(materialEntry, index);
+      const lineMaterial = new THREE.LineBasicMaterial({
+        color: material.color.clone().lerp(lineBaseColor, 0.4),
+        transparent: true,
+        opacity: 0.54
+      });
+      const geometry = new THREE.BufferGeometry();
+      const positions = [];
+      const normals = [];
+
+      part.faces.forEach(([a, b, c]) => {
+        const pA = model.points[a];
+        const pB = model.points[b];
+        const pC = model.points[c];
+        if (!pA || !pB || !pC) return;
+        const va = new THREE.Vector3(pA[0], pA[1], pA[2]);
+        const vb = new THREE.Vector3(pB[0], pB[1], pB[2]);
+        const vc = new THREE.Vector3(pC[0], pC[1], pC[2]);
+        const normal = new THREE.Vector3().subVectors(vb, va).cross(new THREE.Vector3().subVectors(vc, va)).normalize();
+        [va, vb, vc].forEach((vertex) => {
+          positions.push(vertex.x, vertex.y, vertex.z);
+          normals.push(normal.x, normal.y, normal.z);
+        });
+      });
+
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+      geometry.computeBoundingSphere();
+      const mesh = new THREE.Mesh(geometry, material);
+      // preserve part name for selection UI
+      mesh.userData = mesh.userData || {};
+      mesh.userData.partName = part.name || `part-${index}`;
+      mesh.name = mesh.userData.partName;
+      group.add(mesh);
+
+      if (part.edges && part.edges.length) {
+        const edgePositions = [];
+        part.edges.forEach(([a, b]) => {
+          const pA = model.points[a];
+          const pB = model.points[b];
+          if (!pA || !pB) return;
+          edgePositions.push(pA[0], pA[1], pA[2], pB[0], pB[1], pB[2]);
+        });
+        const edgeGeometry = new THREE.BufferGeometry();
+        edgeGeometry.setAttribute("position", new THREE.Float32BufferAttribute(edgePositions, 3));
+        group.add(new THREE.LineSegments(edgeGeometry, lineMaterial));
+      }
+    });
+  } else if (model.faces && model.faces.length) {
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const normals = [];
+
+    model.faces.forEach(([a, b, c]) => {
+      const pA = model.points[a];
+      const pB = model.points[b];
+      const pC = model.points[c];
+      if (!pA || !pB || !pC) return;
+      const va = new THREE.Vector3(pA[0], pA[1], pA[2]);
+      const vb = new THREE.Vector3(pB[0], pB[1], pB[2]);
+      const vc = new THREE.Vector3(pC[0], pC[1], pC[2]);
+      const normal = new THREE.Vector3().subVectors(vb, va).cross(new THREE.Vector3().subVectors(vc, va)).normalize();
+      [va, vb, vc].forEach((vertex) => {
+        positions.push(vertex.x, vertex.y, vertex.z);
+        normals.push(normal.x, normal.y, normal.z);
+      });
+    });
+
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0xdde9ff, metalness: 0.12, roughness: 0.38, side: THREE.DoubleSide }));
+    group.add(mesh);
+  }
+
+  if (model.edges && model.edges.length) {
+    const positions = [];
+    model.edges.forEach(([a, b]) => {
+      const pA = model.points[a];
+      const pB = model.points[b];
+      if (!pA || !pB) return;
+      positions.push(pA[0], pA[1], pA[2], pB[0], pB[1], pB[2]);
+    });
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    const lines = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: 0x9fd0ff, transparent: true, opacity: 0.58 }));
+    group.add(lines);
+  }
+
+  const box = new THREE.Box3().setFromObject(group);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+  group.position.sub(center);
+  return group;
+}
+
+// Populate part select and axis controls when a model is loaded
+function setupModelControlsForGroup(group) {
+  try {
+    const partSelect = document.getElementById("partSelect");
+    const focusBtn = document.getElementById("focusPartBtn");
+    const rotX = document.getElementById("rotX");
+    const rotY = document.getElementById("rotY");
+    const rotZ = document.getElementById("rotZ");
+    if (!group) return;
+
+    // gather part names from meshes
+    const parts = [];
+    group.traverse((child) => {
+      if (child.isMesh && child.userData && child.userData.partName) parts.push({ name: child.userData.partName, mesh: child });
+    });
+
+    // populate select
+    if (partSelect) {
+      partSelect.innerHTML = "<option value=''>(none)</option>";
+      parts.forEach((p, i) => {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = p.name || `part-${i}`;
+        partSelect.appendChild(opt);
+      });
+    }
+
+    let highlighted = null;
+    const clearHighlight = () => {
+      if (highlighted) {
+        highlighted.material.emissive && highlighted.material.emissive.setHex(highlighted.userData._origEmissive || 0x000000);
+        highlighted = null;
+      }
+    };
+
+    const highlightPart = (idx) => {
+      clearHighlight();
+      const p = parts[Number(idx)];
+      if (!p) return;
+      highlighted = p.mesh;
+      highlighted.userData._origEmissive = highlighted.material.emissive ? highlighted.material.emissive.getHex() : 0x000000;
+      if (highlighted.material.emissive) highlighted.material.emissive.setHex(0x3366ff);
+    };
+
+    if (partSelect) {
+      partSelect.addEventListener("change", () => {
+        highlightPart(partSelect.value);
+      });
+    }
+
+    if (focusBtn) {
+      focusBtn.addEventListener("click", () => {
+        const idx = Number(partSelect.value);
+        const p = parts[idx];
+        if (!p) return;
+        // frame only that mesh
+        const box = new THREE.Box3().setFromObject(p.mesh);
+        const size = new THREE.Vector3();
+        const center = new THREE.Vector3();
+        box.getSize(size);
+        box.getCenter(center);
+        if (projectViewerState.controls) {
+          projectViewerState.controls.target.copy(center);
+          projectViewerState.controls.radius = Math.max(size.length() * 1.5, 0.5);
+          projectViewerState.controls.needsUpdate = true;
+        }
+      });
+    }
+
+    // axis sliders -> rotate group
+    if (rotX || rotY || rotZ) {
+      const onAxis = () => {
+        if (!projectViewerState.group) return;
+        projectViewerState.group.rotation.x = parseFloat(rotX?.value || 0);
+        projectViewerState.group.rotation.y = parseFloat(rotY?.value || 0);
+        projectViewerState.group.rotation.z = parseFloat(rotZ?.value || 0);
+      };
+      rotX && rotX.addEventListener("input", onAxis);
+      rotY && rotY.addEventListener("input", onAxis);
+      rotZ && rotZ.addEventListener("input", onAxis);
+    }
+  } catch (e) { console.warn("setupModelControlsForGroup failed", e); }
+}
+
+function renderProjectCad() {
+  renderProjectViewer();
 }
 
 function updateLaunchFilm() {
@@ -721,10 +1364,21 @@ function updateLaunchFilm() {
   const travel = Math.max(1, rect.height - window.innerHeight);
   const progress = clamp(-rect.top / travel);
 
-  launchSticky.style.setProperty("--film-scale", (1.04 + progress * 0.08).toFixed(3));
+  if (launchFilmFrame && launchFilmFrames.length) {
+    const frameIndex = Math.min(launchFilmFrames.length - 1, Math.max(0, Math.round(progress * (launchFilmFrames.length - 1))));
+    const nextFrame = launchFilmFrames[frameIndex];
+    if (launchFilmFrame.dataset.frame !== String(frameIndex)) {
+      launchFilmFrame.src = nextFrame;
+      launchFilmFrame.dataset.frame = String(frameIndex);
+    }
+  }
+
+  launchSticky.style.setProperty("--film-scale", (0.98 + progress * 0.03).toFixed(3));
   launchSticky.style.setProperty("--video-opacity", String(0.62 + progress * 0.34));
 
-  if (launchVideo && Number.isFinite(launchVideo.duration) && launchVideo.duration > 0) {
+  if (!launchVideo) return;
+
+  if (Number.isFinite(launchVideo.duration) && launchVideo.duration > 0) {
     const duration = launchVideo.duration;
     const rangeStart = clamp(Number(launchVideo.dataset.rangeStart ?? 0), 0, duration);
     const parsedRangeEnd = Number(launchVideo.dataset.rangeEnd);
@@ -739,11 +1393,10 @@ function updateLaunchFilm() {
       const delta = target - current;
       if (Math.abs(delta) < 0.012) return;
 
-      const smoothedTarget = current + delta * 0.48;
       if (typeof launchVideo.fastSeek === "function" && Math.abs(delta) > 0.16) {
-        try { launchVideo.fastSeek(smoothedTarget); } catch (e) { launchVideo.currentTime = smoothedTarget; }
+        try { launchVideo.fastSeek(target); } catch (e) { launchVideo.currentTime = target; }
       } else {
-        launchVideo.currentTime = smoothedTarget;
+        launchVideo.currentTime = target;
       }
 
       launchVideo.muted = true;
@@ -770,64 +1423,26 @@ if (launchVideo) {
   }
 }
 
-// Project renderer uploader and controls
-let projectAutoRotate = true;
-let projectRotateSpeed = 0.0055;
-
-function setupProjectRendererControls() {
-  const status = document.getElementById('projectUploadStatus');
-  const autoToggle = document.getElementById('autoRotateToggle');
-  const speed = document.getElementById('rotateSpeed');
-
-  if (autoToggle) {
-    projectAutoRotate = !!autoToggle.checked;
-    autoToggle.addEventListener('change', () => { projectAutoRotate = !!autoToggle.checked; });
-  }
-  if (speed) {
-    projectRotateSpeed = Number(speed.value) || 0.0055;
-    speed.addEventListener('input', () => { projectRotateSpeed = Number(speed.value) || 0.0055; });
-  }
-}
-
-window.addEventListener('load', () => { setupProjectRendererControls(); });
-
 async function loadExternalCad(url, name) {
   try {
     const ext = (name.split('.').pop() || '').toLowerCase();
-    if (ext === 'ork') {
-      const buffer = await (await fetch(url)).arrayBuffer();
-      const xml = extractOrkXmlFromBuffer(buffer);
-      const model = xml ? parseOrkXmlToModel(xml, name) : profileToModel(getFallbackOrkProfile(name));
-      projectCadModel = model;
-      projectCadRotation = 0;
-      if (projectCadStatus) projectCadStatus.textContent = xml ? `${name} ORK render active` : `${name} ORK fallback render active`;
+    if (ext === 'obj' || ext === 'ork' || ext === 'xml' || ext === 'stl') {
+      await projectViewerLoadSource(url);
+      if (projectCadStatus) projectCadStatus.textContent = `${name} render active`;
       return;
     }
-    if (ext === 'obj') {
-      const text = await (await fetch(url)).text();
-      const model = parseObj(text);
-      projectCadModel = model;
-      projectCadRotation = 0;
-      if (projectCadStatus) projectCadStatus.textContent = `${name} OBJ render active`;
-      return;
-    }
-    if (ext === 'stl') {
-      const buffer = await (await fetch(url)).arrayBuffer();
-      const model = parseStl(buffer);
-      projectCadModel = model;
-      projectCadRotation = 0;
-      if (projectCadStatus) projectCadStatus.textContent = `${name} STL render active`;
-      return;
-    }
-    if (projectCadStatus) projectCadStatus.textContent = `Cannot render ${name}`;
+    if (projectCadStatus) projectCadStatus.textContent = `Unsupported file type: ${name}`;
   } catch (e) {
     if (projectCadStatus) projectCadStatus.textContent = `Error loading ${name}`;
+    console.error("External CAD load failed", e);
   }
 }
 
 function updateSpace(time) {
   const scrollMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
   const scrollProgress = clamp(window.scrollY / scrollMax);
+  const pulse = (Math.sin(time * 0.00032) + 1) * 0.5;
+  const pulse2 = (Math.sin(time * 0.00019 + 2.35) + 1) * 0.5;
 
   if (starfield) {
     starfield.style.setProperty("--star-drift", `${scrollProgress * -42}px`);
@@ -844,12 +1459,20 @@ function updateSpace(time) {
       const starX = (left / 100) * window.innerWidth;
       const starY = ((top / 124) * window.innerHeight) - (window.innerHeight * 0.12);
       const distance = Math.hypot(pointer.x - starX, pointer.y - starY);
-      const glow = clamp(1 - distance / pointerRadius, 0, 1);
-      const boosted = clamp(base + flicker + glow * 0.8, 0.08, 1);
+      // Only apply a visible glow for stars near the cursor; avoid a broad global glow
+      const raw = clamp(1 - distance / pointerRadius, 0, 1);
+      const glow = raw > 0.06 ? raw : 0; // threshold to prevent subtle global wash
+      const boosted = clamp(base + flicker + glow * 1.0, 0.08, 1);
       star.style.setProperty("--o", String(boosted));
       star.style.setProperty("--boost", String(glow));
-      star.style.boxShadow = `0 0 ${6 + glow * 20}px rgba(255, 255, 255, ${0.26 + glow * 0.74})`;
-      star.style.transform = `scale(${1 + glow * 0.72})`;
+      if (glow > 0) {
+        star.style.boxShadow = `0 0 ${6 + glow * 28}px rgba(255, 255, 255, ${0.26 + glow * 0.74})`;
+        star.style.transform = `scale(${1 + glow * 0.82})`;
+      } else {
+        // minimal baseline shadow for distant stars, keep subtle and not cursor-linked
+        star.style.boxShadow = `0 0 4px rgba(255,255,255,0.06)`;
+        star.style.transform = `scale(1)`;
+      }
     }
   }
 
@@ -859,10 +1482,21 @@ function updateSpace(time) {
   const y = `${pointer.y}px`;
 
   if (spaceScene) {
+    spaceScene.style.setProperty("--blue-glow-x", `${(68 + Math.sin(time * 0.00018) * 10 + scrollProgress * 4).toFixed(1)}%`);
+    spaceScene.style.setProperty("--blue-glow-y", `${(30 + Math.cos(time * 0.00022) * 8).toFixed(1)}%`);
+    spaceScene.style.setProperty("--blue-glow-a", (0.10 + pulse * 0.11).toFixed(3));
+    spaceScene.style.setProperty("--blue-glow-2x", `${(24 + Math.cos(time * 0.00014 + 1.7) * 14).toFixed(1)}%`);
+    spaceScene.style.setProperty("--blue-glow-2y", `${(70 + Math.sin(time * 0.0002 + 0.9) * 10).toFixed(1)}%`);
+    spaceScene.style.setProperty("--blue-glow-b", (0.04 + pulse2 * 0.08).toFixed(3));
+    spaceScene.style.setProperty("--nebula-a", (0.06 + pulse * 0.07).toFixed(3));
+    spaceScene.style.setProperty("--nebula-b", (0.05 + pulse2 * 0.06).toFixed(3));
+    spaceScene.style.setProperty("--nebula-scale-a", `${1 + pulse * 0.08}`);
+    spaceScene.style.setProperty("--nebula-scale-b", `${1 + pulse2 * 0.08}`);
     spaceScene.style.setProperty("--cursor-x", x);
     spaceScene.style.setProperty("--cursor-y", y);
     spaceScene.style.setProperty("--nebula-x", `${scrollProgress * -24}px`);
     spaceScene.style.setProperty("--nebula-y", `${scrollProgress * 28}px`);
+    spaceScene.style.setProperty("--nebula-scale", `${1 + pulse * 0.08}`);
   }
 
   if (cursorField) {
@@ -873,61 +1507,69 @@ function updateSpace(time) {
   if (heroMedia) {
     heroMedia.style.setProperty("--hero-drift", `${window.scrollY * 0.08}px`);
   }
-}
 
-function openProjectModal(key) {
-  if (!projectModal || !projectData[key]) return;
+  if (pageCometLayer && pageComets.length) {
+    const launchTop = launchScroll ? launchScroll.offsetTop : window.innerHeight * 0.9;
+    const launchBottom = launchScroll ? (launchScroll.offsetTop + launchScroll.offsetHeight) : window.innerHeight * 1.8;
+    const enableComets = window.scrollY > launchBottom;
+    pageCometLayer.style.opacity = enableComets ? "1" : "0";
 
-  const data = projectData[key];
-  document.getElementById("modalKicker").textContent = data.kicker;
-  document.getElementById("modalTitle").textContent = data.title;
-  document.getElementById("modalDescription").textContent = data.description;
-  document.getElementById("modalImage").src = data.image;
-  document.getElementById("modalImage").alt = `${data.title} project image`;
-  document.getElementById("modalCad").href = data.cadDownload || data.cadSource || data.cad;
-  document.getElementById("modalVideo").href = data.video;
-
-  // Inline modal video player (if present) — prefer inline playback when available
-  const modalVideoPlayer = document.getElementById("modalVideoPlayer");
-  const modalImageEl = document.getElementById("modalImage");
-  if (modalVideoPlayer && data.video) {
-    modalVideoPlayer.src = data.video;
-    modalVideoPlayer.muted = true;
-    modalVideoPlayer.style.display = "block";
-    if (modalImageEl) modalImageEl.style.display = "none";
-    try { modalVideoPlayer.load(); } catch (e) { /* ignore */ }
-  } else if (modalVideoPlayer) {
-    try { modalVideoPlayer.pause(); } catch (e) { }
-    modalVideoPlayer.removeAttribute('src');
-    modalVideoPlayer.style.display = "none";
-    if (modalImageEl) modalImageEl.style.display = "block";
+    if (enableComets) {
+      const cometProgress = clamp((window.scrollY - launchBottom) / Math.max(window.innerHeight * 1.2, 1), 0, 12);
+      pageComets.forEach((comet, index) => {
+        const lane = Number.parseFloat(comet.style.getPropertyValue("--lane")) || (24 + index * 18);
+        const speed = Number.parseFloat(comet.style.getPropertyValue("--speed")) || 120;
+        const delay = Number.parseFloat(comet.style.getPropertyValue("--delay")) || (index * 40);
+        const travel = (cometProgress * speed + delay) % 190;
+        const xPos = -24 + travel;
+        const yWobble = Math.sin((time * 0.0012) + index * 1.4) * 1.8;
+        const yPos = lane + yWobble;
+        const scale = 0.9 + ((index % 3) * 0.08);
+        comet.style.transform = `translate3d(${xPos.toFixed(2)}vw, ${yPos.toFixed(2)}vh, 0) scale(${scale.toFixed(2)})`;
+        comet.style.opacity = String(0.32 + (Math.sin(time * 0.0016 + index) + 1) * 0.24);
+      });
+    } else {
+      pageComets.forEach((comet) => {
+        comet.style.opacity = "0";
+      });
+    }
   }
 
-  const specs = document.getElementById("modalSpecs");
-  specs.replaceChildren(...data.specs.map((item) => {
-    const span = document.createElement("span");
-    span.textContent = item;
-    return span;
-  }));
+  if (motionLab) {
+    const motionRect = motionLab.getBoundingClientRect();
+    const motionProgress = clamp(1 - (motionRect.top / (window.innerHeight * 1.35)), 0, 1);
 
-  projectModal.classList.add("open");
-  projectModal.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-}
+    if (motionScene) {
+      motionScene.style.setProperty("--motion-grid-y", "0px");
+    }
 
-function closeProjectModal() {
-  if (!projectModal) return;
-  projectModal.classList.remove("open");
-  projectModal.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-  // stop/clear modal inline video to free resources
-  const modalVideoPlayer = document.getElementById("modalVideoPlayer");
-  if (modalVideoPlayer) {
-    try { modalVideoPlayer.pause(); } catch (e) { }
-    modalVideoPlayer.removeAttribute('src');
-    modalVideoPlayer.style.display = "none";
-    const modalImageEl = document.getElementById("modalImage");
-    if (modalImageEl) modalImageEl.style.display = "block";
+    motionRockets.forEach((rocket, index) => {
+      const direction = index === 0 ? 1 : -1;
+      const x = index === 0 ? (-18 + motionProgress * 138) : (118 - motionProgress * 144);
+      const y = index === 0 ? (24 + Math.sin(time * 0.00045) * 4 - motionProgress * 12) : (64 + Math.cos(time * 0.00038) * 3 - motionProgress * 8);
+      const rotate = index === 0 ? (-18 + motionProgress * 16) : (12 - motionProgress * 14);
+      rocket.style.transform = `translate3d(${x.toFixed(2)}vw, ${y.toFixed(2)}vh, 0) rotate(${rotate.toFixed(2)}deg) scale(${1 + motionProgress * 0.08}) scaleX(${direction})`;
+      rocket.style.opacity = String(0.34 + motionProgress * 0.66);
+    });
+
+    motionComets.forEach((comet, index) => {
+      const drift = index === 0 ? (110 - motionProgress * 146) : (-12 + motionProgress * 150);
+      const lift = index === 0 ? (26 + Math.sin(time * 0.00055) * 6 - motionProgress * 11) : (72 + Math.cos(time * 0.0005) * 5 - motionProgress * 9);
+      const tilt = index === 0 ? (-12 + motionProgress * 9) : (16 - motionProgress * 8);
+      comet.style.transform = `translate3d(${drift.toFixed(2)}vw, ${lift.toFixed(2)}vh, 0) rotate(${tilt.toFixed(2)}deg) scale(${1 + motionProgress * 0.52})`;
+      comet.style.opacity = String(0.3 + motionProgress * 0.7);
+    });
+
+    motionStreaks.forEach((streak, index) => {
+      const offset = index === 0 ? -22 : index === 1 ? 8 : 34;
+      const horizontal = index === 0 ? (motionProgress * 124 - 12) : index === 1 ? (motionProgress * -128 + 118) : (12 + motionProgress * 32);
+      const vertical = index === 0 ? 14 + motionProgress * 8 : index === 1 ? 46 + motionProgress * 6 : 84 - motionProgress * 18;
+      const rot = index === 0 ? -10 + motionProgress * 10 : index === 1 ? 12 - motionProgress * 14 : -4 + motionProgress * 6;
+      streak.style.transform = `translate3d(${horizontal.toFixed(2)}vw, ${vertical.toFixed(2)}vh, 0) rotate(${rot.toFixed(2)}deg) scaleX(${1 + motionProgress * 0.24})`;
+      streak.style.opacity = String(0.18 + motionProgress * 0.82);
+      streak.style.width = `${(22 + index * 6 + motionProgress * 18).toFixed(2)}vw`;
+      streak.style.left = streak.classList.contains('motion-streak-c') ? `${(12 + motionProgress * 18).toFixed(2)}vw` : '';
+    });
   }
 }
 
@@ -945,6 +1587,8 @@ window.addEventListener("pointermove", (event) => {
 }, { passive: true });
 
 window.addEventListener("resize", createStars, { passive: true });
+window.addEventListener("scroll", () => updateSpace(performance.now()), { passive: true });
+window.addEventListener("scroll", updateLaunchFilm, { passive: true });
 
 if (cadInput) {
   cadInput.addEventListener("change", async () => {
@@ -1016,16 +1660,16 @@ if (newsroomGalleryFeed && newsroomGalleryFeedData.length) {
   }
 }
 
+updateNewsroomMonthlyStats();
+
 document.querySelectorAll("[data-project]").forEach((card) => {
   card.addEventListener("click", () => {
     loadProjectCad(card.dataset.project);
-    openProjectModal(card.dataset.project);
   });
   card.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       loadProjectCad(card.dataset.project);
-      openProjectModal(card.dataset.project);
     }
   });
 });
@@ -1038,73 +1682,21 @@ if (projectCadButtons.length) {
   });
 }
 
-if (projectCadCanvas) {
+if (projectCadViewer) {
   loadProjectCad(activeProjectRender);
 }
 
-// Selection: allow clicking the project canvas to select vertex/edges
-if (projectCadCanvas) {
-  projectCadCanvas.addEventListener('click', (ev) => {
-    const rect = projectCadCanvas.getBoundingClientRect();
-    const x = ev.clientX - rect.left;
-    const y = ev.clientY - rect.top;
-    if (!projectCadProjected || !projectCadProjected.length) return;
-
-    // find nearest vertex
-    let best = { idx: -1, dist: Infinity };
-    for (let i = 0; i < projectCadProjected.length; i += 1) {
-      const p = projectCadProjected[i];
-      if (!p) continue;
-      const dx = p.x - x;
-      const dy = p.y - y;
-      const d = Math.hypot(dx, dy);
-      if (d < best.dist) { best = { idx: i, dist: d }; }
-    }
-
-    const threshold = Math.max(12, Math.min(30, (rect.width + rect.height) * 0.01));
-    projectSelection.vertex = null;
-    projectSelection.edges.clear();
-    if (best.dist <= threshold) {
-      projectSelection.vertex = best.idx;
-      // collect connected edges
-      projectCadModel.edges.forEach(([a, b]) => {
-        if (a === best.idx || b === best.idx) projectSelection.edges.add(`${a}:${b}`);
-      });
-      if (projectCadStatus) projectCadStatus.textContent = `Selected vertex ${best.idx} — ${projectSelection.edges.size} edges`;
-    } else {
-      // try nearest edge to click
-      let bestEdge = { key: null, dist: Infinity };
-      projectCadModel.edges.forEach(([a, b]) => {
-        const p1 = projectCadProjected[a];
-        const p2 = projectCadProjected[b];
-        if (!p1 || !p2) return;
-        // distance from point to segment
-        const l2 = (p2.x-p1.x)**2 + (p2.y-p1.y)**2;
-        const t = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((x - p1.x)*(p2.x-p1.x) + (y - p1.y)*(p2.y-p1.y)) / l2));
-        const projx = p1.x + t * (p2.x-p1.x);
-        const projy = p1.y + t * (p2.y-p1.y);
-        const d = Math.hypot(projx - x, projy - y);
-        if (d < bestEdge.dist) bestEdge = { key: `${a}:${b}`, dist: d };
-      });
-      if (bestEdge.dist <= threshold) {
-        projectSelection.edges.add(bestEdge.key);
-        if (projectCadStatus) projectCadStatus.textContent = `Selected edge ${bestEdge.key}`;
-      } else {
-        if (projectCadStatus) projectCadStatus.textContent = `No part selected`;
-      }
-    }
-  });
+fitCrewNames();
+window.addEventListener("resize", () => {
+  window.requestAnimationFrame(fitCrewNames);
+});
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => window.requestAnimationFrame(fitCrewNames)).catch(() => {});
 }
 
-document.querySelectorAll("[data-close-modal]").forEach((control) => {
-  control.addEventListener("click", closeProjectModal);
-});
-
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeProjectModal();
-});
 
 createStars();
+updateSpace(performance.now());
 requestAnimationFrame(animate);
 
 // Header hide/show on scroll: hide on scroll down, show on scroll up; compact when small scroll

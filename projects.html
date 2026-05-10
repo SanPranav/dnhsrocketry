@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DNHS Rocketry Club | Projects</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260509b">
+  <link rel="icon" href="images/logo.png">
 </head>
 <body data-page="projects">
   <div class="space-scene" aria-hidden="true">
@@ -28,6 +29,11 @@
       <div class="section-copy narrow">
         <p class="eyebrow">Rockets</p>
         <h2>Active rocket entries.</h2>
+        <nav class="project-toc" aria-label="Project pages">
+          <ul>
+            <li><a href="zenith.html">Zenith — full project page</a></li>
+          </ul>
+        </nav>
       </div>
       <article class="technical-entry" tabindex="0" role="button" data-project="natsqual">
         <img src="images/rocket-1.png" alt="Zenith">
@@ -45,51 +51,10 @@
 
       <!-- Additional technical entries can be added here following the same structure -->
     </section>
-
-    <section class="section model-renderer reveal" aria-label="Model renderer">
-      <div class="section-copy narrow">
-        <p class="eyebrow">Rendered CAD Model</p>
-        <h2>Live model preview.</h2>
-        <p class="lede">The viewer auto-loads the converted mesh from assets/Assembly1.x_t. Run <strong>node scripts/convert-assembly-model.js</strong> after CAD updates to keep this preview 1:1.</p>
-      </div>
-      <div class="model-render-shell">
-        <div class="model-controls">
-          <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
-            <label style="display:flex; gap:8px; align-items:center;"><input id="autoRotateToggle" type="checkbox" checked> Auto-rotate</label>
-            <label style="display:flex; gap:8px; align-items:center;">Speed <input id="rotateSpeed" type="range" min="0" max="0.02" step="0.001" value="0.0055"></label>
-          </div>
-          <div class="cad-status" id="projectUploadStatus" style="margin-top:12px">Preparing renderer</div>
-        </div>
-        <div class="model-canvas">
-          <canvas id="projectCadCanvas" width="980" height="620" aria-label="CAD project render"></canvas>
-          <div class="cad-status" id="projectCadStatus">Loading converted CAD mesh</div>
-        </div>
-      </div>
-    </section>
   </main>
 
-  <div class="project-modal" id="projectModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-backdrop" data-close-modal></div>
-    <article class="modal-panel">
-      <button class="modal-close" type="button" data-close-modal aria-label="Close project details">Close</button>
-      <div class="modal-media">
-        <video id="modalVideoPlayer" controls muted preload="metadata" style="display:none"></video>
-        <img id="modalImage" src="images/rocket-1.png" alt="">
-      </div>
-      <div class="modal-copy">
-        <p class="eyebrow" id="modalKicker">Project Detail</p>
-        <h2 id="modalTitle">2026 Nationals Rocket</h2>
-        <p id="modalDescription"></p>
-        <div class="modal-specs" id="modalSpecs"></div>
-        <div class="asset-row">
-          <a id="modalCad" href="assets/Assembly1.x_t" download>Download CAD</a>
-          <a id="modalVideo" href="#" target="_blank" rel="noreferrer">Test Flight Video</a>
-        </div>
-      </div>
-    </article>
-  </div>
   <div id="siteFooterMount"></div>
-  <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.min.js"></script>
-  <script src="script.js"></script>
+  <script src="assets/vendor/three.min.js"></script>
+  <script src="script.js?v=20260510a"></script>
 </body>
 </html>

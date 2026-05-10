@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DNHS Rocketry Club | Taking Flight</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260509b">
+  <link rel="icon" href="images/logo.png">
 </head>
 <body data-page="home">
   <div class="space-scene" aria-hidden="true">
@@ -19,11 +20,9 @@
 
   <main>
     <section class="home-hero cinematic-section reveal">
-      <div class="hero-media" aria-hidden="true">
-        <img src="images/rocket.png" alt="">
-      </div>
+      <div class="hero-media" aria-hidden="true"></div>
       <div class="section-copy">
-        <p class="eyebrow">DNHS Rocketry Club</p>
+        <p class="eyebrow">DNHS ROCKETRY CLUB: Zenith</p>
         <h1>Taking flight.</h1>
         <p class="lede">We build rockets the hard way: sketch, simulate, prototype, test, and run it back until the data agrees.</p>
         <div class="hero-actions">
@@ -35,30 +34,13 @@
 
     <section class="launch-scroll reveal" aria-label="Launch film">
       <div class="launch-sticky">
-        <video id="launchVideo" class="launch-video" muted playsinline autoplay loop preload="auto" data-range-start="0" data-range-end="2">
+        <img id="launchFilmFrame" class="launch-film-frame" src="images/launch-film/frame-01.jpg" alt="" aria-hidden="true">
+        <video id="launchVideo" class="launch-video" muted playsinline preload="auto" data-range-start="0" data-range-end="1.5">
           <source src="videos/launch.mp4" type="video/mp4">
         </video>
         <div class="section-copy">
-          <p class="eyebrow">Launch Film</p>
           <h2>Where shop hours become altitude.</h2>
         </div>
-      </div>
-    </section>
-
-
-    <!-- CAD Bay removed per request -->
-
-    <section class="cinematic-section newsroom-preview reveal">
-      <div class="section-copy">
-        <p class="eyebrow">Newsroom</p>
-        <h2>Field notes from the team.</h2>
-        <p>Follow what we are testing, what broke, what worked, and what we are building next.</p>
-        <a class="text-link" href="newsroom.html">Read updates</a>
-      </div>
-      <div class="news-strip">
-        <article><span>Build Log</span><strong>Airframe fit check wrapped</strong></article>
-        <article><span>Test Stand</span><strong>Recovery timing test this week</strong></article>
-        <article><span>Outreach</span><strong>Sponsor packet in final edits</strong></article>
       </div>
     </section>
 
@@ -131,6 +113,6 @@
 
   <div id="siteFooterMount"></div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=20260510a"></script>
 </body>
 </html>

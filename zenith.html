@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Zenith — DNHS Rocketry Club</title>
+  <link rel="stylesheet" href="style.css?v=20260510a">
+</head>
+<body data-page="zenith">
+  <div id="siteNavMount"></div>
+  <main class="page-main technical-page">
+    <section class="page-hero section">
+      <p class="eyebrow">Zenith Project Details</p>
+      <h1>Zenith</h1>
+      <p class="page-lede">Full technical details and CAD preview for the Zenith rocket.</p>
+    </section>
+
+    <section class="section technical-meta">
+      <div class="section-copy narrow">
+        <h2>Overview</h2>
+        <p>Mission: Recovery validation. Payload: Dual altimeter bay. Altitude capability: 3.2 km. Status: Ground review.</p>
+      </div>
+    </section>
+
+    <section class="section technical-media">
+      <div class="section-copy narrow">
+        <h2>Launch Media & Files</h2>
+        <p>Playback the launch footage (muted) and download the OpenRocket source used for trajectory planning.</p>
+        <div class="zenith-media">
+          <div class="zenith-media-main">
+            <video id="zenithLaunch" src="videos/launch.mp4" controls muted playsinline preload="metadata" class="zenith-video"></video>
+          </div>
+          <aside class="zenith-side">
+            <div class="download-box">
+              <a href="assets/openrocket/NATFINALSROCKET.ork" download="NATFINALSROCKET.ork" class="download-link" aria-label="Download OpenRocket file">
+                <span class="download-icon">⬇️</span>
+                <span class="download-text">Download OpenRocket</span>
+              </a>
+            </div>
+
+            <div class="launch-card">
+              <h3>Launch details</h3>
+              <dl>
+                <div><dt>Apogee</dt><dd>750 ft</dd></div>
+                <div><dt>Target Altitude</dt><dd>750 ft</dd></div>
+                <div><dt>Motor</dt><dd>Solid composite</dd></div>
+                <div><dt>Recovery</dt><dd>Dual deployment</dd></div>
+              </dl>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section model-renderer reveal" aria-label="Zenith model renderer">
+      <div class="section-copy narrow">
+        <p class="eyebrow">Rendered CAD Model</p>
+        <h2>Live model preview</h2>
+      </div>
+      <div class="model-render-shell">
+        <div class="model-controls">
+          <div class="cad-status" id="projectUploadStatus">Preparing renderer</div>
+          <div class="scrub-controls">
+            <label for="projectScrubSlider">Rotate model</label>
+            <div style="display:flex;gap:10px;align-items:center">
+              <input type="range" id="projectScrubSlider" min="0" max="360" step="1" value="0" aria-label="Rotate model">
+              <span id="projectScrubValue" aria-live="polite">0°</span>
+            </div>
+          </div>
+          <div class="axis-controls">
+            <label for="rotX">Rotate X</label>
+            <input type="range" id="rotX" min="-3.1416" max="3.1416" step="0.001" value="0">
+            <label for="rotY">Rotate Y</label>
+            <input type="range" id="rotY" min="-3.1416" max="3.1416" step="0.001" value="0">
+            <label for="rotZ">Rotate Z</label>
+            <input type="range" id="rotZ" min="-3.1416" max="3.1416" step="0.001" value="0">
+          </div>
+          <div class="part-controls">
+            <label for="partSelect">Select part</label>
+            <select id="partSelect"><option value="">(none)</option></select>
+            <button id="focusPartBtn">Focus part</button>
+            <button id="resetViewBtn">Reset view</button>
+          </div>
+        </div>
+        <div class="model-canvas model-viewer-shell">
+          <div id="projectCadViewer" class="model-viewer-frame" aria-label="3D model viewer"></div>
+          <div class="cad-status" id="projectCadStatus">Loading three.js OBJ viewer</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <div id="siteFooterMount"></div>
+  <script src="assets/vendor/three.min.js"></script>
+  <script src="script.js?v=20260510a"></script>
+  <script>
+    // load the zenith model if available
+    document.addEventListener('DOMContentLoaded', () => {
+      const url = 'assets/models/Assembly_1.obj';
+      if (typeof loadExternalCad === 'function') {
+        loadExternalCad(url, 'Assembly_1.obj');
+      }
+    });
+  </script>
+</body>
+</html>
