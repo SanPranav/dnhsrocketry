@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNHS Rocketry Club | Newsroom</title>
+  <link rel="stylesheet" href="style.css?v=20260509b">
+  <link rel="icon" href="images/logo.png">
+</head>
+<body data-page="newsroom">
+  <div class="space-scene" aria-hidden="true">
+    <div class="noise-layer"></div>
+    <div class="nebula nebula-a"></div>
+    <div class="nebula nebula-b"></div>
+    <div class="starfield" id="starfield"></div>
+    <div class="cursor-field" id="cursorField"></div>
+  </div>
+
+  <div id="siteNavMount"></div>
+
+  <main class="page-main">
+    <section class="page-hero section reveal">
+      <div class="hero-split">
+        <div class="section-copy narrow">
+          <p class="eyebrow">Newsroom</p>
+          <h1>Team updates.</h1>
+          <p class="page-lede">Short updates from the workshop, test field, and competition prep table.</p>
+        </div>
+        <div class="newsroom-hero-card">
+          <p class="eyebrow">This Month</p>
+          <div class="newsroom-hero-stats">
+            <article><strong>3</strong><span>fresh updates</span></article>
+            <article><strong>2</strong><span>featured sessions</span></article>
+            <article><strong>1</strong><span>launch recap queued</span></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section newsroom-list reveal">
+      <article>
+        <time>May 2026</time>
+        <h2>Launch recap posting soon</h2>
+        <p>We are wrapping photos, flight data, and team notes from the latest range day.</p>
+        <span class="news-tag">Launch Notes</span>
+      </article>
+      <article>
+        <time>April 2026</time>
+        <h2>Recovery test report in draft</h2>
+        <p>The write-up covers deployment timing tweaks and what changed before the next run.</p>
+        <span class="news-tag">Testing</span>
+      </article>
+      <article>
+        <time>March 2026</time>
+        <h2>Build milestone update coming</h2>
+        <p>Airframe assembly is complete and avionics integration notes are being finalized.</p>
+        <span class="news-tag">Build Log</span>
+      </article>
+    </section>
+
+    <section class="section newsroom-gallery reveal" aria-label="Programs and team photos">
+      <div class="newsroom-gallery-shell">
+        <div class="section-copy narrow newsroom-gallery-copy">
+          <p class="eyebrow">Programs and Work Sessions</p>
+          <h2>Interactive team gallery.</h2>
+          <p>Browse the archive, tap through the featured set, and keep scrolling for more frames to appear.</p>
+        </div>
+
+        <div class="newsroom-gallery-panel" data-newsroom-gallery>
+          <figure class="newsroom-gallery-frame">
+            <img id="newsroomGalleryImage" src="images/team-1.png" alt="Program workshop session">
+            <figcaption>
+              <p id="newsroomGalleryTitle">Program Workshop</p>
+              <span id="newsroomGalleryCaption">Design reviews and subsystem planning with the team.</span>
+            </figcaption>
+          </figure>
+
+          <!-- compact featured frame only; thumbs and prev/next removed for a simple scrolling gallery -->
+        </div>
+      </div>
+
+      <div class="newsroom-gallery-feed-wrap">
+        <div class="section-copy narrow newsroom-gallery-feed-copy">
+          <p class="eyebrow">Archive Wall</p>
+          <h3>Scroll for the rest of the story.</h3>
+          <p>More images load as you move down the page, so the gallery feels like a living log instead of a static block.</p>
+        </div>
+        <div class="gallery-feed" data-gallery-feed aria-label="Expanding gallery feed"></div>
+        <div class="gallery-sentinel" data-gallery-sentinel aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+  <div id="siteFooterMount"></div>
+  <script src="script.js?v=20260510a"></script>
+</body>
+</html>

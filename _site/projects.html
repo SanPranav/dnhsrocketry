@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNHS Rocketry Club | Projects</title>
+  <link rel="stylesheet" href="style.css?v=20260509b">
+  <link rel="icon" href="images/logo.png">
+</head>
+<body data-page="projects">
+  <div class="space-scene" aria-hidden="true">
+    <div class="noise-layer"></div>
+    <div class="nebula nebula-a"></div>
+    <div class="nebula nebula-b"></div>
+    <div class="starfield" id="starfield"></div>
+    <div class="cursor-field" id="cursorField"></div>
+  </div>
+
+  <div id="siteNavMount"></div>
+
+  <main class="page-main technical-page">
+    <section class="page-hero section">
+      <p class="eyebrow">Engineering Registry</p>
+      <h1>Rocket projects.</h1>
+      <p class="page-lede">A running log of the rockets we are actively flying and refining.</p>
+    </section>
+
+    <section class="section technical-list" id="technicalList" aria-label="Rocket technical entries" style="opacity: 0; pointer-events: none; transition: opacity 0.5s ease;">
+      <div class="section-copy narrow">
+        <p class="eyebrow">Rockets</p>
+        <h2>Active rocket entries.</h2>
+        <nav class="project-toc" aria-label="Project pages">
+        </nav>
+      </div>
+      <article class="technical-entry" tabindex="0" role="button" data-project="natsqual">
+        <img src="images/rocket-1.png" alt="Zenith">
+        <div class="entry-grid">
+          <h2>Zenith</h2>
+          <dl>
+            <div><dt>Mission Type</dt><dd>Recovery validation</dd></div>
+            <div><dt>Payload</dt><dd>Dual altimeter bay</dd></div>
+            <div><dt>Altitude Capability</dt><dd>3.2 km</dd></div>
+            <div><dt>Propulsion System</dt><dd>Solid composite motor</dd></div>
+            <div><dt>Status</dt><dd>Ground review</dd></div>
+          </dl>
+        </div>
+      </article>
+    </section>
+
+    <!-- Project detail modal -->
+    <div id="projectModal" class="project-modal" aria-hidden="true" style="display: none;">
+      <div class="project-modal-backdrop" data-dismiss="modal"></div>
+      <div class="project-modal-sheet" role="dialog" aria-modal="true" style="max-height: 80vh; overflow-y: auto;">
+        <button class="project-modal-close" aria-label="Close project">✕</button>
+        <div class="project-modal-body" id="projectModalBody" style="padding: 32px; max-width: 600px; margin: 0 auto;">
+          <h2 style="margin: 0 0 8px 0;">Zenith</h2>
+          <p class="eyebrow" style="margin: 0 0 16px 0;">2026 Nationals Qual Rocket</p>
+          <p style="margin: 0 0 24px 0; color: var(--muted); line-height: 1.6;">Zenith is our current nationals-qualifier build focused on stable flight and consistent recovery. The team is tuning mass distribution, fin alignment, and deployment timing before final field validation.</p>
+          <h3 style="margin: 24px 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.66;">Mission Specs</h3>
+          <dl style="margin: 0; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between;"><dt style="font-size: 13px; opacity: 0.7;">Mission</dt><dd style="margin: 0; font-weight: 500;">National TARC Qualifier</dd></div>
+            <div style="display: flex; justify-content: space-between;"><dt style="font-size: 13px; opacity: 0.7;">Target Altitude</dt><dd style="margin: 0; font-weight: 500;">750 ft</dd></div>
+            <div style="display: flex; justify-content: space-between;"><dt style="font-size: 13px; opacity: 0.7;">Motor</dt><dd style="margin: 0; font-weight: 500;">Solid composite</dd></div>
+            <div style="display: flex; justify-content: space-between;"><dt style="font-size: 13px; opacity: 0.7;">Airframe</dt><dd style="margin: 0; font-weight: 500;">Fiberglass test article</dd></div>
+            <div style="display: flex; justify-content: space-between;"><dt style="font-size: 13px; opacity: 0.7;">Recovery</dt><dd style="margin: 0; font-weight: 500;">Dual deployment</dd></div>
+            <div style="display: flex; justify-content: space-between;"><dt style="font-size: 13px; opacity: 0.7;">Status</dt><dd style="margin: 0; font-weight: 500;">Pre-flight validation</dd></div>
+          </dl>
+          <div style="margin-top: 24px;">
+            <a href="zenith.html" style="display: inline-block; padding: 10px 20px; background: rgba(143, 199, 255, 0.15); border: 1px solid rgba(143, 199, 255, 0.3); border-radius: 6px; color: var(--blue); text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(143, 199, 255, 0.25)'; this.style.borderColor='rgba(143, 199, 255, 0.5)'" onmouseout="this.style.background='rgba(143, 199, 255, 0.15)'; this.style.borderColor='rgba(143, 199, 255, 0.3)'">View full project page →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="siteFooterMount" style="margin-top: 60px;"></div>
+  <script src="assets/vendor/three.min.js"></script>
+  <script src="script.js?v=20260510a"></script>
+</body>
+</html>

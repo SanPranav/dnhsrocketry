@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Zenith — DNHS Rocketry Club</title>
+  <link rel="stylesheet" href="style.css?v=20260510a">
+</head>
+<body data-page="zenith">
+  <div class="starfield" id="starfield"></div>
+  <div id="siteNavMount"></div>
+  <main class="page-main technical-page">
+    <section class="page-hero section">
+      <p class="eyebrow">Zenith Project Details</p>
+      <h1>Zenith</h1>
+      <p class="page-lede">Full technical details and CAD preview for the Zenith rocket.</p>
+    </section>
+
+    <section class="section technical-meta" style="padding: 20px clamp(16px, 4vw, 54px);">
+      <div class="section-copy narrow">
+        <h2 style="margin: 0 0 8px 0;">Overview</h2>
+        <p style="margin: 0;">Stat Summary here</p>
+      </div>
+    </section>
+
+    <section class="section technical-media" style="padding: 40px clamp(16px, 4vw, 54px);">
+      <div style="max-width: 1120px; margin: 0 auto;">
+        <div class="project-details-card">
+          <div class="card-media-section">
+            <video id="zenithLaunch" src="videos/launch.mp4" controls muted playsinline preload="metadata"></video>
+          </div>
+          <div class="card-body">
+            <div class="project-card-header">
+              <p class="eyebrow" style="margin: 0;">Zenith</p>
+              <h2 style="margin: 0;">First Flight Build</h2>
+              <p style="margin: 0; color: var(--muted); line-height: 1.6;">
+                Zenith was our first rocket, built as the starting point for the team’s flight testing and recovery development.
+                This page will keep growing as we fill in the full technical breakdown.
+              </p>
+            </div>
+            <div class="launch-specs-grid">
+              <div class="spec-item">
+                <span class="spec-label">Apogee</span>
+                <span class="spec-value">TBD</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Mass</span>
+                <span class="spec-value">TBD</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Motor</span>
+                <span class="spec-value">TBD</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Status</span>
+                <span class="spec-value">In progress</span>
+              </div>
+            </div>
+            <div class="card-divider"></div>
+            <a href="assets/openrocket/NATFINALSROCKET.ork" download="NATFINALSROCKET.ork" class="card-download-btn">
+              <span style="font-size: 16px; margin-right: 8px;">⬇️</span>
+              <div style="flex: 1; text-align: left;">
+                <div style="font-weight: 600; font-size: 14px;">Download OpenRocket</div>
+                <div style="font-size: 12px; opacity: 0.7;">NATFINALSROCKET.ork</div>
+              </div>
+              <span style="font-size: 14px; opacity: 0.5;">→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section model-renderer reveal" aria-label="Zenith model renderer" style="padding-top: 20px;">
+      <div class="section-copy narrow">
+        <p class="eyebrow">Rendered CAD Model</p>
+        <h2 style="margin: 0;">Live model preview</h2>
+        <p style="margin: 8px 0 0; color: var(--muted);">Click and drag to rotate the model. Scroll to zoom and right-click or shift-drag to pan.</p>
+      </div>
+      <div class="model-render-shell">
+        <div class="model-canvas model-viewer-shell">
+          <div class="cad-status" id="projectUploadStatus">Preparing renderer</div>
+          <div id="projectCadViewer" class="model-viewer-frame" aria-label="3D model viewer"></div>
+          <div class="cad-status" id="projectCadStatus">Loading three.js OBJ viewer</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <div id="siteFooterMount"></div>
+  <script src="assets/vendor/three.min.js"></script>
+  <script src="script.js?v=20260510a"></script>
+  <script>
+    // load the zenith model if available
+    document.addEventListener('DOMContentLoaded', () => {
+      const url = 'assets/models/Assembly_1.obj';
+      if (typeof loadExternalCad === 'function') {
+        loadExternalCad(url, 'Assembly_1.obj');
+      }
+    });
+  </script>
+</body>
+</html>
