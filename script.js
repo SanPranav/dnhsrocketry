@@ -7,13 +7,26 @@ function renderSharedLayout() {
   const contactClass = page === "contact" ? " class=\"active apply-link\"" : " class=\"apply-link\"";
 
   if (!document.getElementById("pageCometLayer")) {
+    const cometSpecs = [
+      { lane: 16, speed: 116, delay: 0, tilt: -28, size: 18, startX: -20, startY: 14, vx: 1.18, vy: 0.46, tail: "left" },
+      { lane: 30, speed: 132, delay: 30, tilt: 28, size: 15, startX: 118, startY: 16, vx: -1.12, vy: 0.42, tail: "right" },
+      { lane: 49, speed: 122, delay: 72, tilt: 0, size: 16, startX: -18, startY: 50, vx: 1.3, vy: 0.0, tail: "left" },
+      { lane: 63, speed: 140, delay: 104, tilt: 180, size: 15, startX: 120, startY: 62, vx: -1.22, vy: 0.02, tail: "right" },
+      { lane: 78, speed: 118, delay: 138, tilt: 42, size: 17, startX: -16, startY: 118, vx: 1.02, vy: -0.76, tail: "left" },
+      { lane: 88, speed: 128, delay: 168, tilt: -42, size: 14, startX: 116, startY: 116, vx: -1.0, vy: -0.74, tail: "right" }
+    ];
     document.body.insertAdjacentHTML("afterbegin", `
       <div class="page-comet-layer" id="pageCometLayer" aria-hidden="true">
-        <div class="page-comet" style="--lane: 22; --speed: 118; --delay: 0; --tilt: -12deg; --size: 18px;"></div>
-        <div class="page-comet" style="--lane: 41; --speed: 136; --delay: 36; --tilt: 10deg; --size: 15px;"></div>
-        <div class="page-comet" style="--lane: 63; --speed: 124; --delay: 78; --tilt: -8deg; --size: 17px;"></div>
-        <div class="page-comet" style="--lane: 79; --speed: 148; --delay: 112; --tilt: 7deg; --size: 14px;"></div>
+        ${cometSpecs.map((spec) => `<div class="page-comet" data-tail="${spec.tail}" style="--lane: ${spec.lane}; --speed: ${spec.speed}; --delay: ${spec.delay}; --tilt: ${spec.tilt}deg; --size: ${spec.size}px; --start-x: ${spec.startX}vw; --start-y: ${spec.startY}vh; --vx: ${spec.vx}; --vy: ${spec.vy};"></div>`).join("")}
       </div>
+    `);
+  }
+
+  if (page === "zenith" && !document.getElementById("projectReturnLink")) {
+    document.body.insertAdjacentHTML("afterbegin", `
+      <a id="projectReturnLink" class="project-return-link" href="projects.html" aria-label="Return to Projects">
+        ← Return to Projects
+      </a>
     `);
   }
 
@@ -67,23 +80,14 @@ function setupProjectScrubUI() {
   // normalize slider to [0,1] representing full 360° of theta
   slider.min = 0; slider.max = 1; slider.step = 0.001;
   // Support sliders that use degrees (0-360) or normalized 0-1 values.
-  const thetaToValue = (theta) => {
-    const deg = ((((theta % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) * 180) / Math.PI;
-    return deg; // degrees
-  };
-  const valueToTheta = (v) => {
-    const num = parseFloat(v) || 0;
-    return (num * Math.PI) / 180; // degrees -> radians
-  };
+  const thetaToValue = (theta) => (((theta % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2);
+  const valueToTheta = (v) => (parseFloat(v) || 0) * Math.PI * 2;
 
   // initialize
   slider.value = thetaToValue(controls.theta || 0);
 
-  const scrubValueDisplay = document.getElementById("projectScrubValue");
   slider.addEventListener("input", () => {
     controls.theta = valueToTheta(slider.value);
-    if (scrubValueDisplay) scrubValueDisplay.textContent = `${Math.round(parseFloat(slider.value) || 0)}°`;
-    // also rotate the model group so camera-based and object-based rotations stay visually in sync
     if (projectViewerState.group) projectViewerState.group.rotation.y = controls.theta;
     controls.needsUpdate = true;
   });
@@ -104,10 +108,8 @@ function setupProjectScrubUI() {
   let rafId = null;
   const sync = () => {
     if (!projectViewerState.controls) return;
-    const v = Math.round(thetaToValue(projectViewerState.controls.theta));
-    if (Math.abs(parseFloat(slider.value) - v) > 0.5) slider.value = v;
-    if (scrubValueDisplay) scrubValueDisplay.textContent = `${v}°`;
-    // mirror camera azimuth to model Y rotation for consistent visual behaviour
+    const v = thetaToValue(projectViewerState.controls.theta);
+    if (Math.abs(parseFloat(slider.value) - v) > 0.0005) slider.value = v;
     if (projectViewerState.group) projectViewerState.group.rotation.y = projectViewerState.controls.theta;
     rafId = requestAnimationFrame(sync);
   };
@@ -118,29 +120,7 @@ function setupProjectScrubUI() {
     window.removeEventListener("keydown", keyHandler);
     if (rafId) cancelAnimationFrame(rafId);
   };
-  // Reset view button
-  const resetBtn = document.getElementById("resetViewBtn");
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      if (!projectViewerState.controls) return;
-      projectViewerState.controls.theta = Math.PI * 0.32;
-      projectViewerState.controls.phi = Math.PI * 0.38;
-      projectViewerState.controls.radius = Math.max(projectViewerState.controls.radius || 4, 2.5);
-      projectViewerState.controls.needsUpdate = true;
-      // reset group rotations and sliders
-      if (projectViewerState.group) projectViewerState.group.rotation.set(0, projectViewerState.controls.theta, 0);
-      const rotX = document.getElementById("rotX");
-      const rotY = document.getElementById("rotY");
-      const rotZ = document.getElementById("rotZ");
-      if (rotX) rotX.value = 0;
-      if (rotY) rotY.value = Math.round((projectViewerState.controls.theta * 180 / Math.PI));
-      if (rotZ) rotZ.value = 0;
-      const scrubValueDisplay = document.getElementById("projectScrubValue");
-      const sliderEl = document.getElementById("projectScrubSlider");
-      if (sliderEl) sliderEl.value = Math.round(projectViewerState.controls.theta * 180 / Math.PI);
-      if (scrubValueDisplay) scrubValueDisplay.textContent = `${Math.round(projectViewerState.controls.theta * 180 / Math.PI)}°`;
-    });
-  }
+
   // store for potential teardown
   projectViewerState._scrubCleanup = cleanup;
 }
@@ -300,8 +280,26 @@ function createStars() {
     const star = document.createElement("i");
     const size = Math.random() > 0.91 ? Math.random() * 2.2 + 1.2 : Math.random() * 1.05 + 0.45;
     const base = 0.18 + Math.random() * 0.68;
-    const left = Math.random() * 100;
-    const top = Math.random() * 124;
+    const cluster = Math.random();
+    let left;
+    let top;
+
+    if (cluster < 0.22) {
+      left = Math.random() * 22;
+      top = Math.random() * 24;
+    } else if (cluster < 0.42) {
+      left = 74 + Math.random() * 26;
+      top = Math.random() * 26;
+    } else if (cluster < 0.62) {
+      left = Math.random() * 28;
+      top = 72 + Math.random() * 52;
+    } else if (cluster < 0.82) {
+      left = 68 + Math.random() * 32;
+      top = 68 + Math.random() * 56;
+    } else {
+      left = Math.random() * 100;
+      top = Math.random() * 124;
+    }
     star.className = "star";
     star.style.left = `${left}%`;
     star.style.top = `${top}%`;
@@ -494,7 +492,6 @@ function parseObj(text) {
       const ids = parts.slice(1).map((part) => Number(part.split("/")[0]) - 1).filter((id) => Number.isFinite(id));
       for (let i = 1; i < ids.length - 1; i += 1) {
         const tri = [ids[0], ids[i], ids[i + 1]];
-        faces.push(tri);
         currentPart.faces.push(tri);
       }
       ids.forEach((id, index) => {
@@ -508,7 +505,7 @@ function parseObj(text) {
 
   flushPart();
 
-  return normalizeModel({ points, edges: [...edges].map((edge) => edge.split(":").map(Number)), faces, parts });
+  return normalizeModel({ points, edges: [...edges].map((edge) => edge.split(":").map(Number)), faces: parts.length ? [] : faces, parts });
 }
 
 function parseStl(buffer) {
@@ -1048,7 +1045,7 @@ function createProjectOrbitControls(camera, domElement, container) {
   };
 
   const startInteraction = (event) => {
-    container.setPointerCapture?.(event.pointerId);
+    domElement.setPointerCapture?.(event.pointerId);
     setPointerState(event, true);
     state.dragging = true;
     state.panning = event.button === 1 || event.button === 2 || event.shiftKey;
@@ -1085,7 +1082,7 @@ function createProjectOrbitControls(camera, domElement, container) {
     state.dragging = false;
     state.panning = false;
     state.needsUpdate = true;
-    try { container.releasePointerCapture?.(event.pointerId); } catch (error) { /* ignore */ }
+    try { domElement.releasePointerCapture?.(event.pointerId); } catch (error) { /* ignore */ }
   };
 
   domElement.addEventListener("pointerdown", startInteraction);
@@ -1206,18 +1203,7 @@ function buildProjectViewerGroup(model, materialMap = new Map()) {
       mesh.name = mesh.userData.partName;
       group.add(mesh);
 
-      if (part.edges && part.edges.length) {
-        const edgePositions = [];
-        part.edges.forEach(([a, b]) => {
-          const pA = model.points[a];
-          const pB = model.points[b];
-          if (!pA || !pB) return;
-          edgePositions.push(pA[0], pA[1], pA[2], pB[0], pB[1], pB[2]);
-        });
-        const edgeGeometry = new THREE.BufferGeometry();
-        edgeGeometry.setAttribute("position", new THREE.Float32BufferAttribute(edgePositions, 3));
-        group.add(new THREE.LineSegments(edgeGeometry, lineMaterial));
-      }
+      // Skip rendering edges as separate geometry - mesh provides sufficient visual detail
     });
   } else if (model.faces && model.faces.length) {
     const geometry = new THREE.BufferGeometry();
@@ -1246,7 +1232,7 @@ function buildProjectViewerGroup(model, materialMap = new Map()) {
     group.add(mesh);
   }
 
-  if (model.edges && model.edges.length) {
+  if (model.edges && model.edges.length && (!model.parts || !model.parts.length)) {
     const positions = [];
     model.edges.forEach(([a, b]) => {
       const pA = model.points[a];
@@ -1275,7 +1261,6 @@ function setupModelControlsForGroup(group) {
     const partSelect = document.getElementById("partSelect");
     const focusBtn = document.getElementById("focusPartBtn");
     const rotX = document.getElementById("rotX");
-    const rotY = document.getElementById("rotY");
     const rotZ = document.getElementById("rotZ");
     if (!group) return;
 
@@ -1339,17 +1324,15 @@ function setupModelControlsForGroup(group) {
     }
 
     // axis sliders -> rotate group
-    if (rotX || rotY || rotZ) {
-      const onAxis = () => {
-        if (!projectViewerState.group) return;
-        projectViewerState.group.rotation.x = parseFloat(rotX?.value || 0);
-        projectViewerState.group.rotation.y = parseFloat(rotY?.value || 0);
-        projectViewerState.group.rotation.z = parseFloat(rotZ?.value || 0);
-      };
-      rotX && rotX.addEventListener("input", onAxis);
-      rotY && rotY.addEventListener("input", onAxis);
-      rotZ && rotZ.addEventListener("input", onAxis);
-    }
+    const onAxis = () => {
+      if (!projectViewerState.group) return;
+      const xVal = parseFloat(rotX?.value) || 0;
+      const zVal = parseFloat(rotZ?.value) || 0;
+      projectViewerState.group.rotation.set(xVal, 0, zVal);
+      if (projectViewerState.controls) projectViewerState.controls.needsUpdate = true;
+    };
+    if (rotX) rotX.addEventListener("input", onAxis);
+    if (rotZ) rotZ.addEventListener("input", onAxis);
   } catch (e) { console.warn("setupModelControlsForGroup failed", e); }
 }
 
@@ -1517,13 +1500,15 @@ function updateSpace(time) {
     if (enableComets) {
       const cometProgress = clamp((window.scrollY - launchBottom) / Math.max(window.innerHeight * 1.2, 1), 0, 12);
       pageComets.forEach((comet, index) => {
-        const lane = Number.parseFloat(comet.style.getPropertyValue("--lane")) || (24 + index * 18);
         const speed = Number.parseFloat(comet.style.getPropertyValue("--speed")) || 120;
         const delay = Number.parseFloat(comet.style.getPropertyValue("--delay")) || (index * 40);
+        const startX = Number.parseFloat(comet.style.getPropertyValue("--start-x")) || -24;
+        const startY = Number.parseFloat(comet.style.getPropertyValue("--start-y")) || 50;
+        const vx = Number.parseFloat(comet.style.getPropertyValue("--vx")) || 1;
+        const vy = Number.parseFloat(comet.style.getPropertyValue("--vy")) || 0;
         const travel = (cometProgress * speed + delay) % 190;
-        const xPos = -24 + travel;
-        const yWobble = Math.sin((time * 0.0012) + index * 1.4) * 1.8;
-        const yPos = lane + yWobble;
+        const xPos = startX + (vx * travel);
+        const yPos = startY + (vy * travel) + (Math.sin((time * 0.0012) + index * 1.4) * 1.2);
         const scale = 0.9 + ((index % 3) * 0.08);
         comet.style.transform = `translate3d(${xPos.toFixed(2)}vw, ${yPos.toFixed(2)}vh, 0) scale(${scale.toFixed(2)})`;
         comet.style.opacity = String(0.32 + (Math.sin(time * 0.0016 + index) + 1) * 0.24);
@@ -1576,7 +1561,7 @@ function updateSpace(time) {
 function animate(time) {
   updateLaunchFilm();
   updateSpace(time);
-  renderCad();
+  // renderCad(); // Disabled: using three.js viewer only, no 2D canvas fallback
   renderProjectCad();
   requestAnimationFrame(animate);
 }
@@ -1664,15 +1649,65 @@ updateNewsroomMonthlyStats();
 
 document.querySelectorAll("[data-project]").forEach((card) => {
   card.addEventListener("click", () => {
-    loadProjectCad(card.dataset.project);
+    // Open modal instead of loading CAD on projects page
+    const modal = document.getElementById("projectModal");
+    if (modal) {
+      modal.style.display = "flex";
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
   });
   card.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      loadProjectCad(card.dataset.project);
+      const modal = document.getElementById("projectModal");
+      if (modal) {
+        modal.style.display = "flex";
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+      }
     }
   });
 });
+
+// Modal close handlers
+const modal = document.getElementById("projectModal");
+const backdrop = modal ? modal.querySelector(".project-modal-backdrop") : null;
+const closeBtn = modal ? modal.querySelector(".project-modal-close") : null;
+
+const closeModal = () => {
+  if (modal) {
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+};
+
+if (backdrop) backdrop.addEventListener("click", closeModal);
+if (closeBtn) closeBtn.addEventListener("click", closeModal);
+
+// Keyboard escape to close modal
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modal && modal.style.display === "flex") closeModal();
+});
+
+// Scroll reveal: show technical-list after scrolling past hero
+const technicalList = document.getElementById("technicalList");
+if (technicalList) {
+  window.addEventListener("scroll", () => {
+    const heroSection = document.querySelector(".page-hero");
+    if (heroSection) {
+      const heroBottom = heroSection.getBoundingClientRect().bottom;
+      if (heroBottom < window.innerHeight * 0.3) {
+        technicalList.style.opacity = "1";
+        technicalList.style.pointerEvents = "auto";
+      } else {
+        technicalList.style.opacity = "0";
+        technicalList.style.pointerEvents = "none";
+      }
+    }
+  });
+}
 
 if (projectCadButtons.length) {
   projectCadButtons.forEach((button) => {
@@ -1682,7 +1717,7 @@ if (projectCadButtons.length) {
   });
 }
 
-if (projectCadViewer) {
+if (projectCadViewer && document.body?.dataset?.page !== "zenith") {
   loadProjectCad(activeProjectRender);
 }
 

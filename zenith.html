@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css?v=20260510a">
 </head>
 <body data-page="zenith">
+  <div class="starfield" id="starfield"></div>
   <div id="siteNavMount"></div>
   <main class="page-main technical-page">
     <section class="page-hero section">
@@ -15,74 +16,69 @@
       <p class="page-lede">Full technical details and CAD preview for the Zenith rocket.</p>
     </section>
 
-    <section class="section technical-meta">
+    <section class="section technical-meta" style="padding: 20px clamp(16px, 4vw, 54px);">
       <div class="section-copy narrow">
-        <h2>Overview</h2>
-        <p>Mission: Recovery validation. Payload: Dual altimeter bay. Altitude capability: 3.2 km. Status: Ground review.</p>
+        <h2 style="margin: 0 0 8px 0;">Overview</h2>
+        <p style="margin: 0;">Stat Summary here</p>
       </div>
     </section>
 
-    <section class="section technical-media">
-      <div class="section-copy narrow">
-        <h2>Launch Media & Files</h2>
-        <p>Playback the launch footage (muted) and download the OpenRocket source used for trajectory planning.</p>
-        <div class="zenith-media">
-          <div class="zenith-media-main">
-            <video id="zenithLaunch" src="videos/launch.mp4" controls muted playsinline preload="metadata" class="zenith-video"></video>
+    <section class="section technical-media" style="padding: 40px clamp(16px, 4vw, 54px);">
+      <div style="max-width: 1120px; margin: 0 auto;">
+        <div class="project-details-card">
+          <div class="card-media-section">
+            <video id="zenithLaunch" src="videos/launch.mp4" controls muted playsinline preload="metadata"></video>
           </div>
-          <aside class="zenith-side">
-            <div class="download-box">
-              <a href="assets/openrocket/NATFINALSROCKET.ork" download="NATFINALSROCKET.ork" class="download-link" aria-label="Download OpenRocket file">
-                <span class="download-icon">⬇️</span>
-                <span class="download-text">Download OpenRocket</span>
-              </a>
+          <div class="card-body">
+            <div class="project-card-header">
+              <p class="eyebrow" style="margin: 0;">Zenith</p>
+              <h2 style="margin: 0;">First Flight Build</h2>
+              <p style="margin: 0; color: var(--muted); line-height: 1.6;">
+                Zenith was our first rocket, built as the starting point for the team’s flight testing and recovery development.
+                This page will keep growing as we fill in the full technical breakdown.
+              </p>
             </div>
-
-            <div class="launch-card">
-              <h3>Launch details</h3>
-              <dl>
-                <div><dt>Apogee</dt><dd>750 ft</dd></div>
-                <div><dt>Target Altitude</dt><dd>750 ft</dd></div>
-                <div><dt>Motor</dt><dd>Solid composite</dd></div>
-                <div><dt>Recovery</dt><dd>Dual deployment</dd></div>
-              </dl>
+            <div class="launch-specs-grid">
+              <div class="spec-item">
+                <span class="spec-label">Apogee</span>
+                <span class="spec-value">TBD</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Mass</span>
+                <span class="spec-value">TBD</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Motor</span>
+                <span class="spec-value">TBD</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Status</span>
+                <span class="spec-value">In progress</span>
+              </div>
             </div>
-          </aside>
+            <div class="card-divider"></div>
+            <a href="assets/openrocket/NATFINALSROCKET.ork" download="NATFINALSROCKET.ork" class="card-download-btn">
+              <span style="font-size: 16px; margin-right: 8px;">⬇️</span>
+              <div style="flex: 1; text-align: left;">
+                <div style="font-weight: 600; font-size: 14px;">Download OpenRocket</div>
+                <div style="font-size: 12px; opacity: 0.7;">NATFINALSROCKET.ork</div>
+              </div>
+              <span style="font-size: 14px; opacity: 0.5;">→</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section model-renderer reveal" aria-label="Zenith model renderer">
+    <section class="section model-renderer reveal" aria-label="Zenith model renderer" style="padding-top: 20px;">
       <div class="section-copy narrow">
         <p class="eyebrow">Rendered CAD Model</p>
-        <h2>Live model preview</h2>
+        <h2 style="margin: 0;">Live model preview</h2>
+        <p style="margin: 8px 0 0; color: var(--muted);">Click and drag to rotate the model. Scroll to zoom and right-click or shift-drag to pan.</p>
       </div>
       <div class="model-render-shell">
-        <div class="model-controls">
-          <div class="cad-status" id="projectUploadStatus">Preparing renderer</div>
-          <div class="scrub-controls">
-            <label for="projectScrubSlider">Rotate model</label>
-            <div style="display:flex;gap:10px;align-items:center">
-              <input type="range" id="projectScrubSlider" min="0" max="360" step="1" value="0" aria-label="Rotate model">
-              <span id="projectScrubValue" aria-live="polite">0°</span>
-            </div>
-          </div>
-          <div class="axis-controls">
-            <label for="rotX">Rotate X</label>
-            <input type="range" id="rotX" min="-3.1416" max="3.1416" step="0.001" value="0">
-            <label for="rotY">Rotate Y</label>
-            <input type="range" id="rotY" min="-3.1416" max="3.1416" step="0.001" value="0">
-            <label for="rotZ">Rotate Z</label>
-            <input type="range" id="rotZ" min="-3.1416" max="3.1416" step="0.001" value="0">
-          </div>
-          <div class="part-controls">
-            <label for="partSelect">Select part</label>
-            <select id="partSelect"><option value="">(none)</option></select>
-            <button id="focusPartBtn">Focus part</button>
-            <button id="resetViewBtn">Reset view</button>
-          </div>
-        </div>
         <div class="model-canvas model-viewer-shell">
+          <div class="cad-status" id="projectUploadStatus">Preparing renderer</div>
           <div id="projectCadViewer" class="model-viewer-frame" aria-label="3D model viewer"></div>
           <div class="cad-status" id="projectCadStatus">Loading three.js OBJ viewer</div>
         </div>
