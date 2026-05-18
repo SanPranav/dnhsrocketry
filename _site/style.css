@@ -2160,6 +2160,15 @@ dd {
   transform: translateY(0);
 }
 
+/* Disable reveal transitions on the Projects page to avoid unwanted fade-in */
+body[data-page="projects"] .reveal,
+body[data-page="projects"] .technical-list,
+body[data-page="projects"] .technical-entry {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
 @media (max-width: 1080px) {
   .mission-section,
   .cad-section,

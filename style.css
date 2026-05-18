@@ -162,6 +162,20 @@ body {
   color: var(--ink);
 }
 
+.modal-media {
+  margin: 8px 0 24px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+}
+
+.modal-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 /* Fixed project return button */
 .project-return-link {
   position: fixed;
@@ -699,6 +713,20 @@ dt {
 .launch-sticky span {
   color: #fff;
   font-family: "Consolas", "Courier New", monospace;
+}
+
+@media (min-width: 1080px) {
+  .launch-video {
+    opacity: 1;
+    object-position: 58% center;
+    filter: saturate(1.05) contrast(1.2) brightness(0.92);
+  }
+
+  .launch-sticky::after {
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 18%),
+      linear-gradient(to top, rgba(0, 0, 0, 0.56) 0%, rgba(0, 0, 0, 0) 16%);
+  }
 }
 
 .systems-section {
@@ -2160,6 +2188,15 @@ dd {
   transform: translateY(0);
 }
 
+/* Disable reveal transitions on the Projects page to avoid unwanted fade-in */
+body[data-page="projects"] .reveal,
+body[data-page="projects"] .technical-list,
+body[data-page="projects"] .technical-entry {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
 @media (max-width: 1080px) {
   .mission-section,
   .cad-section,
@@ -2297,7 +2334,8 @@ dd {
   }
 
   .modal-media img {
-    min-height: 280px;
+    width: 100%;
+    height: auto;
   }
 }
 

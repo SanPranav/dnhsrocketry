@@ -241,7 +241,7 @@ function updateNewsroomMonthlyStats() {
   const statsRoot = document.querySelector(".newsroom-hero-stats");
   if (!statsRoot) return;
 
-  const reportCount = newsroomGalleryFeedData.length;
+  const reportCount = document.querySelectorAll(".newsroom-list article").length;
   const featuredCount = newsroomGalleryData.length;
   const queuedCount = Math.max(0, Math.ceil(reportCount / 3) - 1);
 
@@ -1602,7 +1602,13 @@ if (reveals.length) {
     rootMargin: "0px 0px -8% 0px"
   });
 
-  reveals.forEach((item) => observer.observe(item));
+  // For the projects page we want the sections to appear immediately
+  // (avoid the fade-in reveal that can hide content on some viewports).
+  if (document.body && document.body.dataset && document.body.dataset.page === "projects") {
+    reveals.forEach((item) => item.classList.add("is-visible"));
+  } else {
+    reveals.forEach((item) => observer.observe(item));
+  }
 }
 
 if (menuToggle && navLinks) {
@@ -1694,19 +1700,33 @@ window.addEventListener("keydown", (e) => {
 // Scroll reveal: show technical-list after scrolling past hero
 const technicalList = document.getElementById("technicalList");
 if (technicalList) {
-  window.addEventListener("scroll", () => {
-    const heroSection = document.querySelector(".page-hero");
-    if (heroSection) {
-      const heroBottom = heroSection.getBoundingClientRect().bottom;
-      if (heroBottom < window.innerHeight * 0.3) {
-        technicalList.style.opacity = "1";
-        technicalList.style.pointerEvents = "auto";
-      } else {
-        technicalList.style.opacity = "0";
-        technicalList.style.pointerEvents = "none";
-      }
+  // Keep visible on projects page to avoid the fade/hide behavior.
+  if (document.body && document.body.dataset && document.body.dataset.page === "projects") {
+    technicalList.style.opacity = "1";
+    technicalList.style.pointerEvents = "auto";
+    // Also disable CSS transitions programmatically to prevent any fade effect
+    try {
+      technicalList.style.transition = "none";
+      document.querySelectorAll('.technical-entry').forEach((el) => { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; });
+      document.querySelectorAll('.reveal').forEach((el) => { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; });
+    } catch (e) {
+      // ignore
     }
-  });
+  } else {
+    window.addEventListener("scroll", () => {
+      const heroSection = document.querySelector(".page-hero");
+      if (heroSection) {
+        const heroBottom = heroSection.getBoundingClientRect().bottom;
+        if (heroBottom < window.innerHeight * 0.3) {
+          technicalList.style.opacity = "1";
+          technicalList.style.pointerEvents = "auto";
+        } else {
+          technicalList.style.opacity = "0";
+          technicalList.style.pointerEvents = "none";
+        }
+      }
+    });
+  }
 }
 
 if (projectCadButtons.length) {

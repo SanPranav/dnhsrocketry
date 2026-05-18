@@ -206,42 +206,54 @@ let launchLastSeekAt = 0;
 let newsroomGalleryIndex = 0;
 const newsroomGalleryData = [
   {
-    image: "images/team-1.png",
-    title: "Program Workshop",
-    caption: "Design reviews and subsystem planning with the team."
+    image: "images/teamphotos/Screenshot 2026-05-09 at 9.39.50\u202fPM.png",
+    title: "Team Portrait",
+    caption: "The crew together before the next round of launch work."
   },
   {
-    image: "images/team-2.png",
-    title: "The Shop",
-    caption: "Where parts turn into flight-ready hardware."
+    image: "images/teamphotos/Screenshot 2026-05-10 at 3.26.25\u202fPM.png",
+    title: "Build Session",
+    caption: "Hands-on planning around the next build pass."
   },
   {
-    image: "images/team-3.png",
-    title: "Competition Day",
-    caption: "Range prep, launch, and recovery all in one frame."
+    image: "images/teamphotos/Screenshot 2026-05-10 at 3.27.07\u202fPM.png",
+    title: "Field Crew",
+    caption: "The team gathered around the rocket and gear."
+  },
+  {
+    image: "images/teamphotos/Screenshot 2026-05-10 at 3.27.17\u202fPM.png",
+    title: "Launch Prep",
+    caption: "Getting everything ready before the next flight window."
+  },
+  {
+    image: "images/teamphotos/Screenshot 2026-05-10 at 3.27.28\u202fPM.png",
+    title: "Final Check",
+    caption: "One last look at the setup before heading out."
   }
 ];
 
 const newsroomGalleryFeedData = [
-  { image: "images/team-1.png", title: "Workshop Notes", caption: "Whiteboard plans, layout checks, and subsystem handoffs." },
-  { image: "images/team-2.png", title: "Hardware Bench", caption: "Parts, tools, and the focus that turns ideas into flight hardware." },
-  { image: "images/team-3.png", title: "Launch Day", caption: "Pre-flight checks and range-side setup before liftoff." },
-  { image: "images/team-1.png", title: "CAD Review", caption: "Iteration time with the current build and the next revision queued." },
-  { image: "images/team-2.png", title: "Recovery Setup", caption: "Packing, folding, and confirming deployment timing before field day." },
-  { image: "images/team-3.png", title: "Flight Line", caption: "Team coordination right before the vehicle leaves the rail." },
-  { image: "images/team-1.png", title: "Subsystem Sync", caption: "Engineering notes across propulsion, avionics, and recovery." },
-  { image: "images/team-2.png", title: "Build Table", caption: "The shop setup where the next round of parts gets assembled." },
-  { image: "images/team-3.png", title: "Post-Flight", caption: "Recovered hardware, fresh notes, and the next iteration list." },
-  { image: "images/team-1.png", title: "Crew Huddle", caption: "Quick alignment before the next check-in or test window." },
-  { image: "images/team-2.png", title: "Finishing Pass", caption: "Cleanup, measurement, and a final look at the details." },
-  { image: "images/team-3.png", title: "Range Prep", caption: "Everything staged, labeled, and ready for the next launch." }
+  { image: "images/zenithlaunches/IMG_0404.JPG", title: "Zenith Launch Pad", caption: "The vehicle staged and ready on the rail." },
+  { image: "images/2025rocketcamp/Screenshot 2026-05-09 at 9.40.55\u202fPM.png", title: "Rocket Camp Warmup", caption: "Camp setup and prep before the next run." },
+  { image: "images/2025rocketcamp/Screenshot 2026-05-09 at 9.42.00\u202fPM.png", title: "Camp Workshop", caption: "Hands-on work during the camp build session." },
+  { image: "images/2025rocketcamp/Screenshot 2026-05-09 at 9.42.25\u202fPM.png", title: "Camp Field Crew", caption: "Crew photo from the field-side check-in." },
+  { image: "images/2025rocketcamp/Screenshot 2026-05-09 at 9.43.07\u202fPM.png", title: "Camp Layout", caption: "Parts, tools, and the layout for the next build." },
+  { image: "images/2025rocketcamp/Screenshot 2026-05-09 at 9.43.37\u202fPM.png", title: "Camp Launch Prep", caption: "Final checks before the launch sequence." },
+  { image: "images/2025rocketcamp/Screenshot 2026-05-09 at 9.44.19\u202fPM.png", title: "Camp Recovery", caption: "Recovery gear staged and ready to go." },
+  { image: "images/2025rocketcamp/Screenshot 2026-05-09 at 9.44.30\u202fPM.png", title: "Camp Debrief", caption: "A quick look back at what changed and why." },
+  { image: "images/2025rocketcamp/Screenshot 2026-05-09 at 9.44.44\u202fPM.png", title: "Camp Wrap-Up", caption: "Everything packed and logged for the next round." },
+  { image: "images/20206natscomp/IMG_5832.HEIC.JPEG", title: "Nationals Qualifier 01", caption: "One of the finalist shots from the 2026-2027 run." },
+  { image: "images/20206natscomp/IMG_5838.HEIC.JPEG", title: "Nationals Qualifier 02", caption: "Competition day prep and field-side setup." },
+  { image: "images/20206natscomp/IMG_5870.HEIC.JPEG", title: "Nationals Qualifier 03", caption: "The team at the national qualifier site." },
+  { image: "images/20206natscomp/IMG_5882.HEIC.JPEG", title: "Nationals Qualifier 04", caption: "Rocket and gear staged for the run." },
+  // Nationals Qualifier 05 and 06 removed per content request
 ];
 
 function updateNewsroomMonthlyStats() {
   const statsRoot = document.querySelector(".newsroom-hero-stats");
   if (!statsRoot) return;
 
-  const reportCount = newsroomGalleryFeedData.length;
+  const reportCount = document.querySelectorAll(".newsroom-list article").length;
   const featuredCount = newsroomGalleryData.length;
   const queuedCount = Math.max(0, Math.ceil(reportCount / 3) - 1);
 
@@ -330,6 +342,14 @@ function setNewsroomGallery(index) {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
+}
+
+let newsroomGalleryRotationId = null;
+function startNewsroomGalleryRotation() {
+  if (newsroomGalleryRotationId || newsroomGalleryData.length < 2 || !newsroomGalleryImage) return;
+  newsroomGalleryRotationId = window.setInterval(() => {
+    setNewsroomGallery(newsroomGalleryIndex + 1);
+  }, 4800);
 }
 
 function advanceNewsroomGallery(direction) {
@@ -1345,7 +1365,8 @@ function updateLaunchFilm() {
 
   const rect = launchScroll.getBoundingClientRect();
   const travel = Math.max(1, rect.height - window.innerHeight);
-  const progress = clamp(-rect.top / travel);
+  const desktopLaunchBias = window.innerWidth >= 1100 ? 0.42 : 0.16;
+  const progress = clamp((-rect.top / travel) + desktopLaunchBias);
 
   if (launchFilmFrame && launchFilmFrames.length) {
     const frameIndex = Math.min(launchFilmFrames.length - 1, Math.max(0, Math.round(progress * (launchFilmFrames.length - 1))));
@@ -1602,7 +1623,13 @@ if (reveals.length) {
     rootMargin: "0px 0px -8% 0px"
   });
 
-  reveals.forEach((item) => observer.observe(item));
+  // For the projects page we want the sections to appear immediately
+  // (avoid the fade-in reveal that can hide content on some viewports).
+  if (document.body && document.body.dataset && document.body.dataset.page === "projects") {
+    reveals.forEach((item) => item.classList.add("is-visible"));
+  } else {
+    reveals.forEach((item) => observer.observe(item));
+  }
 }
 
 if (menuToggle && navLinks) {
@@ -1619,13 +1646,16 @@ if (menuToggle && navLinks) {
   });
 }
 
-if (newsroomGallery && newsroomGalleryItems.length) {
-  newsroomGalleryItems.forEach((button, index) => {
-    button.addEventListener("click", () => setNewsroomGallery(index));
-  });
+if (newsroomGallery) {
+  if (newsroomGalleryItems.length) {
+    newsroomGalleryItems.forEach((button, index) => {
+      button.addEventListener("click", () => setNewsroomGallery(index));
+    });
+  }
   if (newsroomGalleryPrev) newsroomGalleryPrev.addEventListener("click", () => advanceNewsroomGallery(-1));
   if (newsroomGalleryNext) newsroomGalleryNext.addEventListener("click", () => advanceNewsroomGallery(1));
   setNewsroomGallery(0);
+  startNewsroomGalleryRotation();
 }
 
 if (newsroomGalleryFeed && newsroomGalleryFeedData.length) {
@@ -1694,19 +1724,29 @@ window.addEventListener("keydown", (e) => {
 // Scroll reveal: show technical-list after scrolling past hero
 const technicalList = document.getElementById("technicalList");
 if (technicalList) {
-  window.addEventListener("scroll", () => {
-    const heroSection = document.querySelector(".page-hero");
-    if (heroSection) {
-      const heroBottom = heroSection.getBoundingClientRect().bottom;
-      if (heroBottom < window.innerHeight * 0.3) {
-        technicalList.style.opacity = "1";
-        technicalList.style.pointerEvents = "auto";
-      } else {
-        technicalList.style.opacity = "0";
-        technicalList.style.pointerEvents = "none";
-      }
+  // On the projects page, always show the technical list to avoid the fade/hide behavior.
+  if (document.body && document.body.dataset && document.body.dataset.page === "projects") {
+    technicalList.style.opacity = "1";
+    technicalList.style.pointerEvents = "auto";
+    // Also disable CSS transitions programmatically to prevent any fade effect
+    try {
+      technicalList.style.transition = "none";
+      document.querySelectorAll('.technical-entry').forEach((el) => { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; });
+      document.querySelectorAll('.reveal').forEach((el) => { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; });
+    } catch (e) {
+      // ignore
     }
-  });
+  } else {
+    const updateTechnicalListVisibility = () => {
+      const shouldShow = window.scrollY > 16;
+      technicalList.style.opacity = shouldShow ? "1" : "0";
+      technicalList.style.pointerEvents = shouldShow ? "auto" : "none";
+    };
+
+    window.addEventListener("scroll", updateTechnicalListVisibility, { passive: true });
+    window.addEventListener("resize", updateTechnicalListVisibility);
+    updateTechnicalListVisibility();
+  }
 }
 
 if (projectCadButtons.length) {

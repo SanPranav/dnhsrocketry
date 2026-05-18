@@ -1,16 +1,17 @@
 import React, {useEffect, useRef, useState} from 'react'
 
 const base = [
-  { image: '/images/team-1.png', title: 'Workshop', caption: 'Behind the bench.' },
-  { image: '/images/team-2.png', title: 'Build Table', caption: 'Parts and tools.' },
-  { image: '/images/team-3.png', title: 'Range Day', caption: 'Launch prep.' }
+  { image: '/images/teamphotos/Screenshot 2026-05-09 at 9.39.50\u202fPM.png', title: 'Team Portrait', caption: 'The crew together before the next round.' },
+  { image: '/images/teamphotos/Screenshot 2026-05-10 at 3.26.25\u202fPM.png', title: 'Build Session', caption: 'Hands-on planning around the next build pass.' },
+  { image: '/images/teamphotos/Screenshot 2026-05-10 at 3.27.07\u202fPM.png', title: 'Field Crew', caption: 'The team gathered around the rocket and gear.' },
+  { image: '/images/teamphotos/Screenshot 2026-05-10 at 3.27.17\u202fPM.png', title: 'Launch Prep', caption: 'Getting everything ready before the next flight window.' },
+  { image: '/images/teamphotos/Screenshot 2026-05-10 at 3.27.28\u202fPM.png', title: 'Final Check', caption: 'One last look at the setup before heading out.' }
 ]
 
 export default function Gallery(){
   const [items, setItems] = useState([])
   const indexRef = useRef(0)
   useEffect(()=>{
-    // initial batch
     appendBatch()
     const observer = new IntersectionObserver((entries)=>{
       entries.forEach(e=>{ if(e.isIntersecting) appendBatch() })
