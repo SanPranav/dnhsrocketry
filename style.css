@@ -1,14 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --bg: #000;
+  --bg: radial-gradient(1200px 600px at 68% 30%, #081020 0%, #000 40%);
   --ink: #f8fbff;
   --muted: rgba(248, 251, 255, 0.66);
-  --line: rgba(248, 251, 255, 0.13);
-  --panel: rgba(255, 255, 255, 0.055);
-  --panel-strong: rgba(255, 255, 255, 0.085);
+  --line: rgba(248, 251, 255, 0.12);
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel-strong: rgba(255, 255, 255, 0.08);
   --orange: #ff8a24;
-  --blue: #8fc7ff;
+  --blue: #7ec7ff;
+  --accent: linear-gradient(90deg,var(--blue),var(--orange));
   --max: 1180px;
   --nav-height: 82px;
   --font-sans: "Inter", "Segoe UI", Arial, sans-serif;
@@ -312,12 +313,13 @@ img {
 
 .site-header {
   position: fixed;
-  z-index: 30;
+  z-index: 60;
   top: 0;
   left: 0;
   right: 0;
-  padding: 22px clamp(16px, 4vw, 54px);
-  background: linear-gradient(rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0));
+  padding: 18px clamp(14px, 3.5vw, 48px);
+  background: linear-gradient(180deg, rgba(0,0,0,0.62), rgba(0,0,0,0.18));
+  backdrop-filter: blur(6px);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 12px;
@@ -359,6 +361,8 @@ img {
   font-weight: 900;
   white-space: nowrap;
   font-size: clamp(16px, 2.2vw, 22px);
+  color: var(--ink);
+  text-shadow: 0 2px 18px rgba(126,199,255,0.06);
 }
 
 .logo {
@@ -388,9 +392,12 @@ img {
 
 .nav-links a {
   position: relative;
-  opacity: 0.68;
+  opacity: 0.75;
   white-space: nowrap;
-  transition: opacity 180ms ease;
+  transition: opacity 180ms ease, color 160ms ease;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .nav-links a::after {
@@ -411,6 +418,7 @@ img {
 .nav-links a.active,
 .apply-link {
   opacity: 1;
+  color: var(--blue);
 }
 
 .nav-links a:hover::after,
@@ -474,11 +482,10 @@ main {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.2), transparent 36%),
-    /* new hero background image (unsplash, launch/sky) */
-    url("https://images.unsplash.com/photo-1454789548928-9efd52dc4031?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=8b3d0de6c7f6b8b6f3b1e0c0b4b2f7f6") center / cover no-repeat;
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.14), transparent 36%),
+    url("images/launch-film/frame-01.jpg") center / cover no-repeat;
   mix-blend-mode: screen;
-  opacity: 0.52;
+  opacity: 0.64;
 }
 
 .hero-media::after {
@@ -523,9 +530,11 @@ h2 {
 h1 {
   max-width: 980px;
   margin-bottom: 18px;
-  font-size: clamp(40px, 8.5vw, 120px);
-  font-weight: 930;
+  font-size: clamp(44px, 10vw, 120px);
+  font-weight: 900;
   line-height: 0.92;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 h2 {
@@ -567,19 +576,19 @@ p {
   letter-spacing: 0.12em;
   font-size: 12px;
   font-weight: 800;
-  transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
+  transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease, color 220ms ease;
 }
 
 .primary-button {
-  color: #000;
-  background: #fff;
+  color: #06101a;
+  background: linear-gradient(90deg, var(--blue), var(--orange));
+  box-shadow: 0 10px 30px rgba(126,199,255,0.08);
 }
 
 .ghost-button {
-  border: 1px solid rgba(255, 255, 255, 0.42);
-  color: #fff;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: var(--ink);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
 }
 
 .primary-button:hover,
