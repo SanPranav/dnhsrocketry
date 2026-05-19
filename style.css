@@ -667,6 +667,11 @@ dt {
   object-fit: cover;
 }
 
+.launch-film-frame,
+.launch-video {
+  object-position: var(--launch-film-focus-x, 50%) var(--launch-film-focus-y, 80%);
+}
+
 .launch-film-frame {
   z-index: -2;
 }
@@ -682,7 +687,6 @@ dt {
 
 .launch-video {
   opacity: var(--video-opacity, 0.86);
-  object-position: 68% center;
   filter: saturate(0.82) contrast(1.12) brightness(0.72);
   will-change: opacity, transform;
   transform: translateZ(0);
@@ -716,9 +720,13 @@ dt {
 }
 
 @media (min-width: 1080px) {
+  .launch-sticky {
+    --launch-film-focus-x: 50%;
+    --launch-film-focus-y: 58%;
+  }
+
   .launch-video {
     opacity: 1;
-    object-position: 58% center;
     filter: saturate(1.05) contrast(1.2) brightness(0.92);
   }
 
