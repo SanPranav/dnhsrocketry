@@ -21,14 +21,58 @@
   <main>
     <section class="home-hero cinematic-section reveal">
       <div class="hero-media" aria-hidden="true"></div>
-      <div class="section-copy">
-        <p class="eyebrow">DNHS ROCKETRY CLUB: Zenith</p>
-        <h1>Taking flight.</h1>
-        <p class="lede">We build rockets the hard way: sketch, simulate, prototype, test, and run it back until the data agrees.</p>
-        <div class="hero-actions">
-          <a class="primary-button" href="projects.html">View Projects</a>
-          <a class="ghost-button" href="newsroom.html">Team Updates</a>
+      <div class="home-hero-layout">
+        <div class="section-copy">
+          <p class="eyebrow">DNHS ROCKETRY CLUB: Zenith</p>
+          <h1>Taking flight.</h1>
+          <p class="lede">We build rockets the hard way: sketch, simulate, prototype, test, and run it back until the data agrees.</p>
         </div>
+      </div>
+    </section>
+
+    <section class="quick-access section" id="newsroomPreview" aria-label="Newsroom preview">
+      <div class="quick-access-shell newsroom-preview-shell">
+        <article class="quick-access-card quick-access-project" id="cadPreview">
+          <div class="section-copy quick-access-copy">
+            <p class="eyebrow">Latest CAD</p>
+            <h2>Latest CAD</h2>
+            <p>The full model is stored with the project notes so the design details stay organized and easy to access.</p>
+            <div class="quick-access-actions">
+              <a class="primary-button" href="projects.html#technicalList">Open projects</a>
+              <a class="ghost-button" href="zenith.html">Jump to Zenith page</a>
+            </div>
+            <p class="hero-teaser-note">Scroll down on the Projects page to open the Zenith card and view the CAD.</p>
+          </div>
+        </article>
+
+        <article class="quick-access-card newsroom-preview-stack">
+          <div class="section-copy quick-access-copy newsroom-copy">
+            <p class="eyebrow">Newsroom</p>
+            <h2>Recent updates</h2>
+            <p>The latest photos and team updates are available on the front page, with a direct route to the full archive.</p>
+            <div class="quick-access-actions">
+              <a class="primary-button" href="newsroom.html">Open newsroom</a>
+              <a class="ghost-button" href="newsroom.html#gallery">View archive</a>
+            </div>
+          </div>
+          <div class="home-news-grid" aria-label="Recent newsroom photos">
+            <a class="home-news-card" href="newsroom.html">
+              <img src="images/teamphotos/Screenshot 2026-05-09 at 9.39.50 PM.png" alt="Testing photo">
+              <strong>Testing</strong>
+              <span>Testing and setup validation from a recent build session.</span>
+            </a>
+            <a class="home-news-card" href="newsroom.html">
+              <img src="images/teamphotos/Screenshot 2026-05-10 at 3.26.25 PM.png" alt="Team photo">
+              <strong>Team Photo</strong>
+              <span>A current team portrait from the latest crew gathering.</span>
+            </a>
+            <a class="home-news-card" href="newsroom.html">
+              <img src="images/zenithlaunches/IMG_0404.JPG" alt="Rocket on the launchpad">
+              <strong>Launch Pad</strong>
+              <span>Zenith staged on the launchpad and ready for flight.</span>
+            </a>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -113,6 +157,7 @@
 
   <div id="siteFooterMount"></div>
 
+  <script src="assets/vendor/three.min.js"></script>
   <script src="script.js?v=20260510a"></script>
 </body>
 </html>
