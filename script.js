@@ -2,6 +2,7 @@ function renderSharedLayout() {
   const navMount = document.getElementById("siteNavMount");
   const footerMount = document.getElementById("siteFooterMount");
   const page = document.body?.dataset?.page || "";
+  const campFormUrl = "https://docs.google.com/forms/d/1t-vGnyWpFrFQu7g_h76Wt1B2NOfXr2TVW5h1rDjNxVg/viewform";
 
   const activeClass = (slug) => (page === slug ? " class=\"active\"" : "");
   const contactClass = page === "contact" ? " class=\"active apply-link\"" : " class=\"apply-link\"";
@@ -57,18 +58,66 @@ function renderSharedLayout() {
     footerMount.innerHTML = `
       <footer class="site-footer">
         <div class="footer-shell">
-          <p class="eyebrow">Made Possible By</p>
-          <div class="footer-sponsors" aria-label="Footer sponsor logos">
-            <img src="images/sponsor-1.png" alt="Sponsor one logo">
-            <img src="images/sponsor-2.png" alt="Sponsor two logo">
-            <img src="images/sponsor-1.png" alt="Sponsor three logo">
-            <img src="images/sponsor-2.png" alt="Sponsor four logo">
-          </div>
-          <p class="footer-meta">DNHS Rocketry Club // Del Norte High School</p>
+          <p class="footer-meta">Made by DNHS Rocketry Club: Zenith</p>
         </div>
       </footer>
     `;
   }
+}
+
+function setupCampPopup() {
+  const page = document.body?.dataset?.page || "";
+  if (page !== "home" && page !== "newsroom") return;
+  if (document.getElementById("campPopup")) return;
+
+  const campFormUrl = "https://docs.google.com/forms/d/1t-vGnyWpFrFQu7g_h76Wt1B2NOfXr2TVW5h1rDjNxVg/viewform";
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="camp-popup" id="campPopup" aria-hidden="true">
+      <div class="camp-popup-panel" role="dialog" aria-modal="true" aria-labelledby="campPopupTitle">
+        <button class="camp-popup-close" type="button" aria-label="Close announcement" data-camp-dismiss>✕</button>
+        <p class="eyebrow">Annual Camp</p>
+        <h2 id="campPopupTitle">Our annual rocketry camp is here!</h2>
+        <p>We are opening up sign-ups now. Fill out the Google Form to get the details and join the camp list.</p>
+        <div class="camp-popup-actions">
+          <a class="primary-button" href="${campFormUrl}" target="_blank" rel="noreferrer">Open the camp form</a>
+          <button class="ghost-button" type="button" data-camp-dismiss>Maybe later</button>
+        </div>
+      </div>
+    </div>
+  `);
+
+  const popup = document.getElementById("campPopup");
+  if (!popup) return;
+
+  const storageKey = "dnhsrocketryCampPopupDismissed";
+  let dismissed = false;
+  try {
+    dismissed = window.localStorage.getItem(storageKey) === "1";
+  } catch (error) {
+    dismissed = false;
+  }
+
+  const closePopup = () => {
+    popup.classList.remove("is-open");
+    popup.setAttribute("aria-hidden", "true");
+    try {
+      window.localStorage.setItem(storageKey, "1");
+    } catch (error) {
+      /* ignore storage errors */
+    }
+  };
+
+  popup.addEventListener("click", (event) => {
+    if (event.target === popup || event.target.closest("[data-camp-dismiss]")) {
+      closePopup();
+    }
+  });
+
+  window.setTimeout(() => {
+    if (dismissed) return;
+    popup.classList.add("is-open");
+    popup.setAttribute("aria-hidden", "false");
+  }, 900);
 }
 
 function setupProjectScrubUI() {
@@ -126,6 +175,7 @@ function setupProjectScrubUI() {
 }
 
 renderSharedLayout();
+setupCampPopup();
 
 const starfield = document.getElementById("starfield");
 const cursorField = document.getElementById("cursorField");
@@ -158,8 +208,10 @@ const heroMedia = document.querySelector(".hero-media");
 const cadCanvas = document.getElementById("cadCanvas");
 const cadInput = document.getElementById("cadInput");
 const cadStatus = document.getElementById("cadStatus");
-const projectCadViewer = document.getElementById("projectCadViewer");
-const projectCadStatus = document.getElementById("projectCadStatus");
+const homeCadViewer = document.getElementById("homeCadViewer");
+const projectCadViewer = document.getElementById("projectCadViewer") || homeCadViewer;
+const homeCadStatus = document.getElementById("homeCadStatus");
+const projectCadStatus = document.getElementById("projectCadStatus") || homeCadStatus;
 const projectCadButtons = document.querySelectorAll("[data-render-project]");
 
 const pointer = {
@@ -176,9 +228,9 @@ const projectData = {
     image: "images/rocket-1.png",
     description: "Zenith is our current nationals-qualifier build focused on stable flight and consistent recovery. The team is tuning mass distribution, fin alignment, and deployment timing before final field validation.",
     specs: ["Mission: National TARC Qualifier", "Target Altitude: 750 ft", "Motor: Solid composite", "Airframe: Fiberglass test article", "Recovery: Dual deployment", "Status: Pre-flight validation"],
-    cad: "assets/models/Assembly_1.obj",
-    cadSource: "assets/models/Assembly_1.obj",
-    cadDownload: "assets/models/Assembly_1.obj",
+    cad: "assets/models/Assembly 1.obj",
+    cadSource: "assets/models/Assembly 1.obj",
+    cadDownload: "assets/models/Assembly 1.obj",
     video: "videos/launch.mp4"
   }
   // additional projects can be added here following the same structure
@@ -203,6 +255,8 @@ let cadRotation = 0;
 let activeProjectRender = "natsqual";
 let projectSelection = { vertex: null, edges: new Set() };
 let launchLastSeekAt = 0;
+let launchFilmTargetProgress = 0;
+let launchFilmSmoothedProgress = 0;
 let newsroomGalleryIndex = 0;
 const newsroomGalleryData = [
   {
@@ -1366,7 +1420,15 @@ function updateLaunchFilm() {
   const rect = launchScroll.getBoundingClientRect();
   const travel = Math.max(1, rect.height - window.innerHeight);
   const desktopLaunchBias = window.innerWidth >= 1100 ? 0.42 : 0.16;
-  const progress = clamp((-rect.top / travel) + desktopLaunchBias);
+  launchFilmTargetProgress = clamp((-rect.top / travel) + desktopLaunchBias);
+  if (!Number.isFinite(launchFilmSmoothedProgress) || launchFilmSmoothedProgress === 0) {
+    launchFilmSmoothedProgress = launchFilmTargetProgress;
+  } else {
+    const jump = Math.abs(launchFilmTargetProgress - launchFilmSmoothedProgress);
+    launchFilmSmoothedProgress = jump > 0.35 ? launchFilmTargetProgress : lerp(launchFilmSmoothedProgress, launchFilmTargetProgress, 0.14);
+  }
+
+  const progress = launchFilmSmoothedProgress;
 
   if (launchFilmFrame && launchFilmFrames.length) {
     const frameIndex = Math.min(launchFilmFrames.length - 1, Math.max(0, Math.round(progress * (launchFilmFrames.length - 1))));
@@ -1391,13 +1453,13 @@ function updateLaunchFilm() {
     try {
       if (launchVideo.seeking) return;
       const now = performance.now();
-      if (now - launchLastSeekAt < 20) return;
+      if (now - launchLastSeekAt < 34) return;
 
       const current = launchVideo.currentTime || 0;
       const delta = target - current;
-      if (Math.abs(delta) < 0.012) return;
+      if (Math.abs(delta) < 0.016) return;
 
-      if (typeof launchVideo.fastSeek === "function" && Math.abs(delta) > 0.16) {
+      if (typeof launchVideo.fastSeek === "function" && Math.abs(delta) > 0.2) {
         try { launchVideo.fastSeek(target); } catch (e) { launchVideo.currentTime = target; }
       } else {
         launchVideo.currentTime = target;
